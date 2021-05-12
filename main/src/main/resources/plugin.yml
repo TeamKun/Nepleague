@@ -1,0 +1,8 @@
+name: Nepleague
+version: ${project.version}
+main: net.kunlab.nepleague.Nepleague
+api-version: 1.16
+authors: [ Bun133 ]
+website: https://twitter.com/bun133_
+commands:
+  nep:

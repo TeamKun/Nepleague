@@ -4,6 +4,7 @@ import com.github.bun133.flylib2.commands.*
 import com.github.bun133.flylib2.utils.ComponentUtils
 import io.papermc.paper.event.player.AsyncChatEvent
 import net.kyori.adventure.title.Title
+import net.md_5.bungee.api.chat.BaseComponent
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.Location
@@ -13,6 +14,8 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
+import org.jetbrains.annotations.NotNull
+import java.time.Duration
 
 
 class Nepleague : JavaPlugin() {
@@ -26,6 +29,7 @@ class Nepleague : JavaPlugin() {
 
     override fun onEnable() {
         saveDefaultConfig()
+        configManager.load()
         val command = Commander(
             this, "Nepleague for 50Craft", "/nep start|team|config add|remove|<configName>",
 
@@ -67,7 +71,7 @@ class Nepleague : JavaPlugin() {
                 .setInvoker { nepleague, commandSender, strings ->
                     if (commandSender is Player) {
                         val loc = commandSender.location
-                        if(teamManager.checkAlreadyExists(strings[2])){
+                        if (teamManager.checkAlreadyExists(strings[2])) {
                             commandSender.sendMessage("その名前のチームは既に登録されています")
                             return@setInvoker false
                         }
@@ -77,7 +81,7 @@ class Nepleague : JavaPlugin() {
                         return@setInvoker true
                     } else if (commandSender is BlockCommandSender) {
                         val loc = commandSender.block.location
-                        if(teamManager.checkAlreadyExists(strings[2])){
+                        if (teamManager.checkAlreadyExists(strings[2])) {
                             commandSender.sendMessage("その名前のチームは既に登録されています")
                             return@setInvoker false
                         }
@@ -102,23 +106,26 @@ class Nepleague : JavaPlugin() {
                 .setInvoker { nepleague, commandSender, strings ->
                     if (commandSender is Player) {
                         val loc = commandSender.location
-                        if(teamManager.checkAlreadyExists(strings[2])){
+                        if (teamManager.checkAlreadyExists(strings[2])) {
                             commandSender.sendMessage("その名前のチームは既に登録されています")
                             return@setInvoker false
                         }
 
                         teamManager.addTeam(loc, strings[2], strings[3])
                         commandSender.sendMessage("Added Team:${strings[2]} displayname:${strings[3]}")
+
+                        configManager.save()
                         return@setInvoker true
                     } else if (commandSender is BlockCommandSender) {
                         val loc = commandSender.block.location
-                        if(teamManager.checkAlreadyExists(strings[2])){
+                        if (teamManager.checkAlreadyExists(strings[2])) {
                             commandSender.sendMessage("その名前のチームは既に登録されています")
                             return@setInvoker false
                         }
 
                         teamManager.addTeam(loc, strings[2], strings[3])
                         commandSender.sendMessage("Added Team:${strings[2]} displayname:${strings[3]}")
+                        configManager.save()
                         return@setInvoker true
                     } else {
                         // From Server
@@ -190,8 +197,7 @@ class Nepleague : JavaPlugin() {
                 .addTabChain(
                     TabChain(
                         TabObject("input"),
-                        // TODO 起動時にしか生成されなくてどうにもならない
-                        TabObject(*(teamManager.teams.map { it.internalName }.toTypedArray())),
+                        TeamTabObject(this),
                         TabPart.EmptySelector(),
                         TabObject(TabPart.selectors, TabPart.playerSelector)
                     )
@@ -268,6 +274,10 @@ class Nepleague : JavaPlugin() {
         )
 
         command.register("nep")
+
+
+        /// Title Provider 稼働 /////
+        teamManager.runTaskTimer(this, 0, 1)
     }
 
     override fun onDisable() {
@@ -290,7 +300,7 @@ class ConfigManger(val plugin: Nepleague) {
 
         plugin.teamManager.teams = mutableListOf()
         plugin.config.getConfigurationSection("Teams")?.getKeys(false)?.forEach {
-            val loc = plugin.config.getLocation("Teams.$it.Pos")
+            val loc = getLoc("Teams.$it.Pos")
             val displayName = plugin.config.getString("Teams.$it.DisplayName")
 
             if (loc != null && displayName != null) {
@@ -299,6 +309,10 @@ class ConfigManger(val plugin: Nepleague) {
                     it,
                     displayName
                 )
+            } else {
+                println("loc or displayName is null")
+                println("loc:$loc")
+                println("displayName:$displayName")
             }
         }
     }
@@ -307,10 +321,38 @@ class ConfigManger(val plugin: Nepleague) {
         plugin.config.set("RayDistance", rayDistance)
         plugin.config.set("MaxDistance", maxDistance)
         plugin.teamManager.teams.forEach {
+            println("Saving:Teams.${it.internalName}.DisplayName")
             plugin.config.set("Teams.${it.internalName}.DisplayName", it.displayName)
-            plugin.config.set("Teams.${it.internalName}.Pos", it.loc)
+            saveLoc("Teams.${it.internalName}.Pos", it.loc)
         }
+        println("Saving Config")
         plugin.saveConfig()
+    }
+
+    fun saveLoc(path: String, loc: Location) {
+        plugin.config.set("$path.X", loc.x)
+        plugin.config.set("$path.Y", loc.y)
+        plugin.config.set("$path.Z", loc.z)
+        plugin.config.set("$path.World", loc.world.name)
+    }
+
+    fun getLoc(path: String): Location? {
+        val x = plugin.config.get("$path.X")
+        val y = plugin.config.get("$path.Y")
+        val z = plugin.config.get("$path.Z")
+        val world = plugin.config.get("$path.World")
+
+        if (x !is Double || y !is Double || z !is Double || world !is String) {
+            return null
+        }
+        val w = plugin.server.getWorld(world)
+        if (w == null) {
+            plugin.server.broadcastMessage("" + ChatColor.RED + "ワールドを取得できませんでした(reloadすると直る可能性があります)")
+            println("WorldNull")
+            return null
+        }
+
+        return Location(w, x, y, z)
     }
 }
 
@@ -339,7 +381,7 @@ class TeamManager(val plugin: Nepleague) : BukkitRunnable() {
     }
 }
 
-class Team(var loc: Location, val internalName: String, var displayName: String, val plugin: Nepleague) {
+class Team(var loc: Location, val internalName: String, var displayName: String, plugin: Nepleague) {
     var answers = mutableMapOf<Int, Pair<Player, Char>>()
     var titleProvider: TitleProvider = TitleProvider(this, plugin = plugin)
     fun getPlayers(): List<Player> {
@@ -351,19 +393,35 @@ class Team(var loc: Location, val internalName: String, var displayName: String,
     }
 
     fun getString(size: Int): String {
-        val s = StringBuilder()
+//        println("Size:$size")
+//        println("Answers:${answers}")
+        val s = StringBuilder(size + 1)
         for (i in 0 until size) {
-            val d = answers.mapValues { it.value.second }.getOrDefault(i, "□")
-            s[i] = d as Char
+            val d = answers[i + 1]?.second
+//            println("d:$d")
+            if (d != null) {
+                s.append(d)
+//                s.setCharAt(i,d)
+            } else {
+                s.append('□')
+//                s.setCharAt(i,'□')
+            }
         }
-        if (!titleProvider.isOpened) return s.toString()
+        if (titleProvider.isOpened){
+//            println("Opened")
+            val ss = s.toString()
+//            println("ss:$ss")
+            return ss
+        }
         else {
             for (i in 0 until size) {
                 if (s[i] != '□') {
-                    s[i] = '■'
+                    s.setCharAt(i,'■')
                 }
             }
-            return s.toString()
+            val ss = s.toString()
+//            println("ss:$ss")
+            return ss
         }
     }
 
@@ -381,7 +439,7 @@ class Team(var loc: Location, val internalName: String, var displayName: String,
     }
 }
 
-class TitleProvider(val team: Team, var size: Int = 0, val plugin: Nepleague) {
+class TitleProvider(val team: Team, val plugin: Nepleague) {
     init {
         providers.add(this)
     }
@@ -401,7 +459,7 @@ class TitleProvider(val team: Team, var size: Int = 0, val plugin: Nepleague) {
                 if (ps.size == 1) {
                     return ps[0]
                 } else {
-                    println("ERROR:In getProvider,Player(${ComponentUtils.toText(player.displayName())}) must answered at two position!")
+                    println("ERROR:In getProvider,Player(${ComponentUtils.toText(player.displayName())}) must have answered at two position!")
                     player.sendMessage("ERROR:In getProvider,You must answered at two position!")
                     player.sendMessage("" + ChatColor.RED + "2つ以上の場所で回答しないでください!")
                 }
@@ -415,9 +473,11 @@ class TitleProvider(val team: Team, var size: Int = 0, val plugin: Nepleague) {
                         return distance.first
                     } else {
                         // ブロックにhitしたが範囲内にTeamがいないとき(非表示)
+                        return null
                     }
                 } else {
                     // どのブロックにもhitしないとき(非表示)
+                    return null
                 }
             }
             return null
@@ -425,27 +485,31 @@ class TitleProvider(val team: Team, var size: Int = 0, val plugin: Nepleague) {
     }
 
     fun showTo(p: Player) {
-        // TODO
         if (team.getPlayers().contains(p)) {
             //チーム内
-            val s = team.getString(size)
+            println("In Team")
+            val s = team.getString(plugin.currentString.length)
             val an = team.getPlayerAnswer(p)
             if (an == null) {
+                println("Ans null")
                 p.showTitle(
                     Title.title(
                         ComponentUtils.fromText(s),
-                        ComponentUtils.fromText(team.displayName)
+                        ComponentUtils.fromText(team.displayName),
+                        Title.Times.of(Duration.ofSeconds(0), Duration.ofSeconds(1), Duration.ofSeconds(0))
                     )
                 )
             } else {
                 val index = team.getAnswerIndex(an)
+                println("Ans:${an.second} index:$index")
                 if (index != null) {
                     val sb = StringBuilder(s)
-                    sb[index] = an.second
+                    sb.setCharAt(index,an.second)
                     p.showTitle(
                         Title.title(
                             ComponentUtils.fromText(sb.toString()),
-                            ComponentUtils.fromText(team.displayName)
+                            ComponentUtils.fromText(team.displayName),
+                            Title.Times.of(Duration.ofSeconds(0), Duration.ofSeconds(1), Duration.ofSeconds(0))
                         )
                     )
                 } else {
@@ -453,10 +517,12 @@ class TitleProvider(val team: Team, var size: Int = 0, val plugin: Nepleague) {
                 }
             }
         } else {
+            println("Not in Team")
             p.showTitle(
                 Title.title(
-                    ComponentUtils.fromText(team.getString(size)),
-                    ComponentUtils.fromText(team.displayName)
+                    ComponentUtils.fromText(team.getString(plugin.currentString.length)),
+                    ComponentUtils.fromText(team.displayName),
+                    Title.Times.of(Duration.ofSeconds(0), Duration.ofSeconds(1), Duration.ofSeconds(0))
                 )
             )
         }
@@ -479,9 +545,16 @@ class InputWaiter(val team: Team, val index: Int, val player: Player, val plugin
                 e.isCancelled = true
                 team.set(index, player, s[0])
                 isAlready = true
+                player.sendMessage("「${s[0]}」を入力しました")
             } else {
                 player.sendMessage("1文字ひらがなを入力してください")
             }
         }
+    }
+}
+
+class TeamTabObject(val plugin: Nepleague) : TabObject() {
+    override fun getAsList(): MutableList<String> {
+        return plugin.teamManager.teams.map { it.internalName }.toMutableList()
     }
 }

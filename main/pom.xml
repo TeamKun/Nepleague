@@ -152,7 +152,7 @@
         <dependency>
             <groupId>com.github.bun133</groupId>
             <artifactId>flylib-2</artifactId>
-            <version>1.0.6.10</version>
+            <version>1.0.6.11</version>
         </dependency>
     </dependencies>
 </project>

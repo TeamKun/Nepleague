@@ -6,3 +6,4 @@ authors: [ Bun133 ]
 website: https://twitter.com/bun133_
 commands:
   nep:
+    description: Nepleague Game Command

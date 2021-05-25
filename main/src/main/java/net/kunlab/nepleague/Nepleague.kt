@@ -42,11 +42,14 @@ class Nepleague : JavaPlugin() {
 
         rightClickWaiter = RightClickWaiter(this)
         val command = Commander(
-            this, "Nepleague for 50Craft", "/nep start|team|config add|remove|<configName>",
+            this,
+            "Nepleague for 50Craft",
+            "/nep start|team|config|reset|result add|remove|<configName>|<string>|list|chat|title <teamName>",
 
             // Start Command
 
             CommanderBuilder<Nepleague>()
+                .addFilter(CommanderBuilder.Filters().filterOp())
                 .addTabChain(TabChain(TabObject("start"), TabPart.EmptySelector()))
                 .setInvoker { nepleague, commandSender, strings ->
                     if (!strings[1].matches(Regex("^[\\u3040-\\u309F]+\$"))) {
@@ -73,6 +76,7 @@ class Nepleague : JavaPlugin() {
             // Add Command
 
             CommanderBuilder<Nepleague>()
+                .addFilter(CommanderBuilder.Filters().filterOp())
                 .addTabChain(
                     TabChain(
                         TabObject("team"),
@@ -107,6 +111,7 @@ class Nepleague : JavaPlugin() {
                     }
                 },
             CommanderBuilder<Nepleague>()
+                .addFilter(CommanderBuilder.Filters().filterOp())
                 .addTabChain(
                     TabChain(
                         TabObject("team"),
@@ -146,6 +151,7 @@ class Nepleague : JavaPlugin() {
                 },
 
             CommanderBuilder<Nepleague>()
+                .addFilter(CommanderBuilder.Filters().filterOp())
                 .addTabChain(TabChain(TabObject("team"), TabObject("list")))
                 .setInvoker { nepleague, commandSender, strings ->
                     teamManager.teams.forEach {
@@ -160,6 +166,7 @@ class Nepleague : JavaPlugin() {
             // Remove Command
 
             CommanderBuilder<Nepleague>()
+                .addFilter(CommanderBuilder.Filters().filterOp())
                 .addTabChain(TabChain(TabObject("team"), TabObject("remove"), TabPart.EmptySelector()))
                 .setInvoker { nepleague, commandSender, strings ->
                     val teamName = strings[2]
@@ -174,6 +181,7 @@ class Nepleague : JavaPlugin() {
             // Config Command
 
             CommanderBuilder<Nepleague>()
+                .addFilter(CommanderBuilder.Filters().filterOp())
                 .addTabChain(TabChain(TabObject("config"), TabObject("RayDistance", "MaxDistance")))
                 .setInvoker { nepleague, commandSender, strings ->
                     when (strings[1]) {
@@ -249,6 +257,7 @@ class Nepleague : JavaPlugin() {
                     }
                 },
             CommanderBuilder<Nepleague>()
+                .addFilter(CommanderBuilder.Filters().filterOp())
                 .addTabChain(TabChain(TabObject("finish")))
                 .setInvoker { nepleague, commandSender, strings ->
                     isFinished = true
@@ -263,6 +272,7 @@ class Nepleague : JavaPlugin() {
                     return@setInvoker true
                 },
             CommanderBuilder<Nepleague>()
+                .addFilter(CommanderBuilder.Filters().filterOp())
                 .addTabChain(TabChain(TabObject("result"), TabObject("title")))
                 .setInvoker { nepleague, commandSender, strings ->
                     resultMode = ResultMode.Title
@@ -273,13 +283,28 @@ class Nepleague : JavaPlugin() {
                     return@setInvoker true
                 },
             CommanderBuilder<Nepleague>()
+                .addFilter(CommanderBuilder.Filters().filterOp())
                 .addTabChain(TabChain(TabObject("result"), TabObject("chat")))
                 .setInvoker { nepleague, commandSender, strings ->
                     resultMode = ResultMode.Chat
                     if (commandSender is Player) {
                         rightClickWaiter!!.players.add(commandSender)
-                        commandSender.sendMessage("右クリックでそのチームの結果発表ができるようになりました!")
+                        commandSender.sendMessage("右クリックで全チームの結果発表ができるようになりました!")
                     }
+                    return@setInvoker true
+                },
+            CommanderBuilder<Nepleague>()
+                .addFilter(CommanderBuilder.Filters().filterOp())
+                .addTabChain(TabChain(TabObject("reset")))
+                .setInvoker { nepleague, commandSender, strings ->
+                    teamManager.teams.forEach {
+                        it.reset()
+                    }
+                    isGoingOn = false
+                    isFinished = false
+                    isInput = false
+                    currentString = ""
+
                     return@setInvoker true
                 }
         )
@@ -398,6 +423,8 @@ class Team(var loc: Location, val internalName: String, var displayName: String,
 
     fun reset() {
         answers = mutableMapOf()
+        titleProvider.isOpened = false
+        titleProvider.isChated = false
     }
 
     fun getPlayers(): List<Player> {
@@ -406,6 +433,14 @@ class Team(var loc: Location, val internalName: String, var displayName: String,
 
     fun set(index: Int, p: Player, s: Char) {
         answers[index] = Pair(p, s)
+    }
+
+    fun isCorrect(): Boolean {
+        if (!titleProvider.plugin.isFinished) {
+            return false
+        } else {
+            return titleProvider.plugin.currentString == getString(titleProvider.plugin.currentString.length)
+        }
     }
 
     fun getString(size: Int): String {
@@ -460,6 +495,7 @@ class TitleProvider(val team: Team, val plugin: Nepleague) {
     }
 
     var isOpened = false
+    var isChated = false
 
     companion object {
         val providers = mutableListOf<TitleProvider>()
@@ -574,43 +610,96 @@ class TeamTabObject(val plugin: Nepleague) : TabObject() {
     }
 }
 
-class RightClickWaiter(private val plugin: Nepleague) : Listener {
+/**
+ * 回答発表系
+ */
+class RightClickWaiter(private val plugin: Nepleague) : Listener, BukkitRunnable() {
     init {
         plugin.server.pluginManager.registerEvents(this, plugin)
+        this.runTaskTimer(plugin, 0, 1)
     }
 
     val players = mutableListOf<Player>()
 
+    // 一回クリックしたつもりでも何回も発火するので
+    val waiter = mutableMapOf<Player, Int>()
+
     @EventHandler
     fun onRightClick(e: PlayerInteractEvent) {
+        if (waiter.containsKey(e.player) && waiter[e.player]!! > 0) {
+            return
+        }
         if (players.contains(e.player)) {
+            if (!plugin.isFinished) {
+                e.player.sendMessage("回答を締め切っていませんよ...")
+                e.player.sendMessage("/nep finishですよ...")
+                return
+            }
             when (plugin.resultMode) {
                 Nepleague.ResultMode.Chat -> {
                     Bukkit.broadcastMessage("結果発表!")
-                    plugin.teamManager.teams.forEach { team ->
-                        val comps = team.answers.map {
-                            println("Second:" + it.value.second)
-                            ComponentUtils.fromText("" + it.value.second)
-                                .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(it.value.first.displayName()))
-                        }
+                    Bukkit.broadcastMessage("模範解答:${plugin.currentString}")
+                    plugin.teamManager.teams
+                        // 重複表示回避処理
+                        .filter { !it.titleProvider.isChated }
+                        .forEach { team ->
+                            team.titleProvider.isOpened = true
+                            team.titleProvider.isChated = true
 
-                        var comp = ComponentUtils.fromText("${team.displayName}:")
+                            val comps = team.getString(plugin.currentString.length).mapIndexed { index, c ->
+                                Pair(team.answers[index + 1]?.first, c)
+                            }.map {
+                                if (it.first != null) {
+                                    ComponentUtils.fromText("" + it.second)
+                                        .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(it.first!!.displayName()))
+                                } else {
+                                    ComponentUtils.fromText("" + it.second)
+                                        .hoverEvent(
+                                            net.kyori.adventure.text.event.HoverEvent.showText(
+                                                ComponentUtils.fromText(
+                                                    "[無回答]"
+                                                )
+                                            )
+                                        )
+                                }
+                            }
 
-                        comps.forEach {
-                            comp = comp.append(it)
-                        }
+//                            val comps = team.answers.map {
+//                                ComponentUtils.fromText("" + it.value.second)
+//                                    .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(it.value.first.displayName()))
+//                            }
 
-                        Bukkit.getOnlinePlayers().forEach { player ->
-                            player.sendMessage(comp)
-                        }
+                            var comp = if (team.isCorrect()) {
+                                ComponentUtils.fromText("" + ChatColor.BLUE + "${team.displayName}:" + ChatColor.RESET)
+                            } else {
+                                ComponentUtils.fromText("" + ChatColor.RED + "${team.displayName}:" + ChatColor.RESET)
+                            }
+
+                            comps.forEach {
+                                comp = comp.append(it)
+                            }
+
+                            Bukkit.getOnlinePlayers().forEach { player ->
+                                player.sendMessage(comp)
+                            }
 //                        使えません残念でした！！！！
 //                        Bukkit.broadcast(comp)
-                    }
+                        }
                 }
                 Nepleague.ResultMode.Title -> {
                     // TODO 演出
                     TitleProvider.getProvider(e.player, plugin)?.isOpened = true
                 }
+            }
+
+            waiter[e.player] = 10
+        }
+    }
+
+    override fun run() {
+        waiter.forEach { (t, u) ->
+            if (u > 0) {
+                waiter[t] = u - 1
             }
         }
     }

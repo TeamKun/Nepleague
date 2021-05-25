@@ -3,8 +3,11 @@ package net.kunlab.nepleague
 import com.github.bun133.flylib2.commands.*
 import com.github.bun133.flylib2.utils.ComponentUtils
 import io.papermc.paper.event.player.AsyncChatEvent
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.title.Title
 import net.md_5.bungee.api.chat.BaseComponent
+import net.md_5.bungee.api.chat.HoverEvent
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.Location
@@ -12,6 +15,7 @@ import org.bukkit.command.BlockCommandSender
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
 import org.jetbrains.annotations.NotNull
@@ -25,11 +29,18 @@ class Nepleague : JavaPlugin() {
     var teamManager = TeamManager(this)
     var configManager = ConfigManger(this)
     var currentString = ""
+    var resultMode: ResultMode = ResultMode.Title
+    var rightClickWaiter: RightClickWaiter? = null
 
+    enum class ResultMode {
+        Title, Chat
+    }
 
     override fun onEnable() {
         saveDefaultConfig()
         configManager.load()
+
+        rightClickWaiter = RightClickWaiter(this)
         val command = Commander(
             this, "Nepleague for 50Craft", "/nep start|team|config add|remove|<configName>",
 
@@ -43,6 +54,7 @@ class Nepleague : JavaPlugin() {
                         return@setInvoker false
                     }
 
+                    teamManager.teams.forEach { it.reset() }
                     currentString = strings[1]
                     isGoingOn = true
                     isInput = true
@@ -203,7 +215,7 @@ class Nepleague : JavaPlugin() {
                     )
                 )
                 .setInvoker { nepleague, commandSender, strings ->
-                    if (!isGoingOn) return@setInvoker false
+
                     val team = teamManager.teams.filter { it.internalName == strings[1] }
                     if (team.size == 1) {
                         val t = team[0]
@@ -211,6 +223,15 @@ class Nepleague : JavaPlugin() {
                         if (num != null) {
                             val ps = Bukkit.selectEntities(commandSender, strings[3])
                             if (ps.size == 1 && ps[0] is Player) {
+                                if (!isGoingOn) {
+                                    // 晒上げ
+                                    Bukkit.getOnlinePlayers().filter { it != ps[0] }.forEach {
+                                        it.sendMessage("ADHD者:${(ps[0] as Player).displayName}")
+                                    }
+
+                                    ps[0].sendMessage("まだ始まってません!落ち着いて!")
+                                    return@setInvoker true
+                                }
                                 InputWaiter(t, num, ps[0] as Player, this)
                                 return@setInvoker true
                             } else {
@@ -244,32 +265,22 @@ class Nepleague : JavaPlugin() {
             CommanderBuilder<Nepleague>()
                 .addTabChain(TabChain(TabObject("result"), TabObject("title")))
                 .setInvoker { nepleague, commandSender, strings ->
+                    resultMode = ResultMode.Title
                     if (commandSender is Player) {
-                        val title = TitleProvider.getProvider(commandSender, this)
-                        if (title != null) {
-                            // TODO 演出
-                            title.isOpened = true
-                        } else {
-                            commandSender.sendMessage("チームが未選択です")
-                        }
-                        return@setInvoker true
+                        rightClickWaiter!!.players.add(commandSender)
+                        commandSender.sendMessage("右クリックでそのチームの結果発表ができるようになりました!")
                     }
-                    return@setInvoker false
+                    return@setInvoker true
                 },
             CommanderBuilder<Nepleague>()
                 .addTabChain(TabChain(TabObject("result"), TabObject("chat")))
                 .setInvoker { nepleague, commandSender, strings ->
+                    resultMode = ResultMode.Chat
                     if (commandSender is Player) {
-                        val title = TitleProvider.getProvider(commandSender, this)
-                        if (title != null) {
-                            // TODO 演出
-                            title.isOpened = true
-                        } else {
-                            commandSender.sendMessage("チームが未選択です")
-                        }
-                        return@setInvoker true
+                        rightClickWaiter!!.players.add(commandSender)
+                        commandSender.sendMessage("右クリックでそのチームの結果発表ができるようになりました!")
                     }
-                    return@setInvoker false
+                    return@setInvoker true
                 }
         )
 
@@ -372,7 +383,7 @@ class TeamManager(val plugin: Nepleague) : BukkitRunnable() {
 
     // Showing Titles
     override fun run() {
-        if (plugin.isGoingOn) {
+        if (plugin.isGoingOn && plugin.resultMode == Nepleague.ResultMode.Title) {
             Bukkit.getOnlinePlayers().forEach {
                 TitleProvider.getProvider(it, plugin.configManager.rayDistance, plugin.configManager.maxDistance)
                     ?.showTo(it)
@@ -384,6 +395,11 @@ class TeamManager(val plugin: Nepleague) : BukkitRunnable() {
 class Team(var loc: Location, val internalName: String, var displayName: String, plugin: Nepleague) {
     var answers = mutableMapOf<Int, Pair<Player, Char>>()
     var titleProvider: TitleProvider = TitleProvider(this, plugin = plugin)
+
+    fun reset() {
+        answers = mutableMapOf()
+    }
+
     fun getPlayers(): List<Player> {
         return answers.map { it.value.first }
     }
@@ -407,16 +423,15 @@ class Team(var loc: Location, val internalName: String, var displayName: String,
 //                s.setCharAt(i,'□')
             }
         }
-        if (titleProvider.isOpened){
+        if (titleProvider.isOpened) {
 //            println("Opened")
             val ss = s.toString()
 //            println("ss:$ss")
             return ss
-        }
-        else {
+        } else {
             for (i in 0 until size) {
                 if (s[i] != '□') {
-                    s.setCharAt(i,'■')
+                    s.setCharAt(i, '■')
                 }
             }
             val ss = s.toString()
@@ -487,11 +502,11 @@ class TitleProvider(val team: Team, val plugin: Nepleague) {
     fun showTo(p: Player) {
         if (team.getPlayers().contains(p)) {
             //チーム内
-            println("In Team")
+//            println("In Team")
             val s = team.getString(plugin.currentString.length)
             val an = team.getPlayerAnswer(p)
             if (an == null) {
-                println("Ans null")
+//                println("Ans null")
                 p.showTitle(
                     Title.title(
                         ComponentUtils.fromText(s),
@@ -501,10 +516,10 @@ class TitleProvider(val team: Team, val plugin: Nepleague) {
                 )
             } else {
                 val index = team.getAnswerIndex(an)
-                println("Ans:${an.second} index:$index")
+//                println("Ans:${an.second} index:$index")
                 if (index != null) {
                     val sb = StringBuilder(s)
-                    sb.setCharAt(index,an.second)
+                    sb.setCharAt(index, an.second)
                     p.showTitle(
                         Title.title(
                             ComponentUtils.fromText(sb.toString()),
@@ -517,7 +532,7 @@ class TitleProvider(val team: Team, val plugin: Nepleague) {
                 }
             }
         } else {
-            println("Not in Team")
+//            println("Not in Team")
             p.showTitle(
                 Title.title(
                     ComponentUtils.fromText(team.getString(plugin.currentString.length)),
@@ -542,13 +557,13 @@ class InputWaiter(val team: Team, val index: Int, val player: Player, val plugin
         if (e.player === player && !isAlready && !plugin.isFinished) {
             val s = ComponentUtils.toText(e.message())
             if (s.length == 1 && s.matches(Regex("^[\\u3040-\\u309F]+\$"))) {
-                e.isCancelled = true
                 team.set(index, player, s[0])
                 isAlready = true
                 player.sendMessage("「${s[0]}」を入力しました")
             } else {
                 player.sendMessage("1文字ひらがなを入力してください")
             }
+            e.isCancelled = true
         }
     }
 }
@@ -556,5 +571,47 @@ class InputWaiter(val team: Team, val index: Int, val player: Player, val plugin
 class TeamTabObject(val plugin: Nepleague) : TabObject() {
     override fun getAsList(): MutableList<String> {
         return plugin.teamManager.teams.map { it.internalName }.toMutableList()
+    }
+}
+
+class RightClickWaiter(private val plugin: Nepleague) : Listener {
+    init {
+        plugin.server.pluginManager.registerEvents(this, plugin)
+    }
+
+    val players = mutableListOf<Player>()
+
+    @EventHandler
+    fun onRightClick(e: PlayerInteractEvent) {
+        if (players.contains(e.player)) {
+            when (plugin.resultMode) {
+                Nepleague.ResultMode.Chat -> {
+                    Bukkit.broadcastMessage("結果発表!")
+                    plugin.teamManager.teams.forEach { team ->
+                        val comps = team.answers.map {
+                            println("Second:" + it.value.second)
+                            ComponentUtils.fromText("" + it.value.second)
+                                .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(it.value.first.displayName()))
+                        }
+
+                        var comp = ComponentUtils.fromText("${team.displayName}:")
+
+                        comps.forEach {
+                            comp = comp.append(it)
+                        }
+
+                        Bukkit.getOnlinePlayers().forEach { player ->
+                            player.sendMessage(comp)
+                        }
+//                        使えません残念でした！！！！
+//                        Bukkit.broadcast(comp)
+                    }
+                }
+                Nepleague.ResultMode.Title -> {
+                    // TODO 演出
+                    TitleProvider.getProvider(e.player, plugin)?.isOpened = true
+                }
+            }
+        }
     }
 }

@@ -50,6 +50,7 @@ class Nepleague : JavaPlugin() {
 
             CommanderBuilder<Nepleague>()
                 .addFilter(CommanderBuilder.Filters().filterOp())
+                .addFilter(CommanderBuilder.Filters().filterNotPlayer())
                 .addTabChain(TabChain(TabObject("start"), TabPart.EmptySelector()))
                 .setInvoker { nepleague, commandSender, strings ->
                     if (!strings[1].matches(Regex("^[\\u3040-\\u309F]+\$"))) {
@@ -77,6 +78,7 @@ class Nepleague : JavaPlugin() {
 
             CommanderBuilder<Nepleague>()
                 .addFilter(CommanderBuilder.Filters().filterOp())
+                .addFilter(CommanderBuilder.Filters().filterNotPlayer())
                 .addTabChain(
                     TabChain(
                         TabObject("team"),
@@ -112,6 +114,7 @@ class Nepleague : JavaPlugin() {
                 },
             CommanderBuilder<Nepleague>()
                 .addFilter(CommanderBuilder.Filters().filterOp())
+                .addFilter(CommanderBuilder.Filters().filterNotPlayer())
                 .addTabChain(
                     TabChain(
                         TabObject("team"),
@@ -152,6 +155,7 @@ class Nepleague : JavaPlugin() {
 
             CommanderBuilder<Nepleague>()
                 .addFilter(CommanderBuilder.Filters().filterOp())
+                .addFilter(CommanderBuilder.Filters().filterNotPlayer())
                 .addTabChain(TabChain(TabObject("team"), TabObject("list")))
                 .setInvoker { nepleague, commandSender, strings ->
                     teamManager.teams.forEach {
@@ -167,6 +171,7 @@ class Nepleague : JavaPlugin() {
 
             CommanderBuilder<Nepleague>()
                 .addFilter(CommanderBuilder.Filters().filterOp())
+                .addFilter(CommanderBuilder.Filters().filterNotPlayer())
                 .addTabChain(TabChain(TabObject("team"), TabObject("remove"), TabPart.EmptySelector()))
                 .setInvoker { nepleague, commandSender, strings ->
                     val teamName = strings[2]
@@ -182,6 +187,7 @@ class Nepleague : JavaPlugin() {
 
             CommanderBuilder<Nepleague>()
                 .addFilter(CommanderBuilder.Filters().filterOp())
+                .addFilter(CommanderBuilder.Filters().filterNotPlayer())
                 .addTabChain(TabChain(TabObject("config"), TabObject("RayDistance", "MaxDistance")))
                 .setInvoker { nepleague, commandSender, strings ->
                     when (strings[1]) {
@@ -223,7 +229,6 @@ class Nepleague : JavaPlugin() {
                     )
                 )
                 .setInvoker { nepleague, commandSender, strings ->
-
                     val team = teamManager.teams.filter { it.internalName == strings[1] }
                     if (team.size == 1) {
                         val t = team[0]
@@ -258,6 +263,7 @@ class Nepleague : JavaPlugin() {
                 },
             CommanderBuilder<Nepleague>()
                 .addFilter(CommanderBuilder.Filters().filterOp())
+                .addFilter(CommanderBuilder.Filters().filterNotPlayer())
                 .addTabChain(TabChain(TabObject("finish")))
                 .setInvoker { nepleague, commandSender, strings ->
                     isFinished = true
@@ -273,6 +279,7 @@ class Nepleague : JavaPlugin() {
                 },
             CommanderBuilder<Nepleague>()
                 .addFilter(CommanderBuilder.Filters().filterOp())
+//                .addFilter(CommanderBuilder.Filters().filterNotPlayer())
                 .addTabChain(TabChain(TabObject("result"), TabObject("title")))
                 .setInvoker { nepleague, commandSender, strings ->
                     resultMode = ResultMode.Title
@@ -284,6 +291,7 @@ class Nepleague : JavaPlugin() {
                 },
             CommanderBuilder<Nepleague>()
                 .addFilter(CommanderBuilder.Filters().filterOp())
+//                .addFilter(CommanderBuilder.Filters().filterNotPlayer())
                 .addTabChain(TabChain(TabObject("result"), TabObject("chat")))
                 .setInvoker { nepleague, commandSender, strings ->
                     resultMode = ResultMode.Chat
@@ -295,6 +303,7 @@ class Nepleague : JavaPlugin() {
                 },
             CommanderBuilder<Nepleague>()
                 .addFilter(CommanderBuilder.Filters().filterOp())
+                .addFilter(CommanderBuilder.Filters().filterNotPlayer())
                 .addTabChain(TabChain(TabObject("reset")))
                 .setInvoker { nepleague, commandSender, strings ->
                     teamManager.teams.forEach {

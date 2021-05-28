@@ -172,7 +172,7 @@ class Nepleague : JavaPlugin() {
             CommanderBuilder<Nepleague>()
                 .addFilter(CommanderBuilder.Filters().filterOp())
                 .addFilter(CommanderBuilder.Filters().filterNotPlayer())
-                .addTabChain(TabChain(TabObject("team"), TabObject("remove"), TabPart.EmptySelector()))
+                .addTabChain(TabChain(TabObject("team"), TabObject("remove"), TeamTabObject(this)))
                 .setInvoker { nepleague, commandSender, strings ->
                     val teamName = strings[2]
                     if (teamManager.teams.filter { it.internalName == teamName }.isNotEmpty()) {
@@ -238,9 +238,9 @@ class Nepleague : JavaPlugin() {
                             if (ps.size == 1 && ps[0] is Player) {
                                 if (!isGoingOn) {
                                     // 晒上げ
-                                    Bukkit.getOnlinePlayers().filter { it != ps[0] }.forEach {
-                                        it.sendMessage("ADHD者:${(ps[0] as Player).displayName}")
-                                    }
+//                                    Bukkit.getOnlinePlayers().filter { it != ps[0] }.forEach {
+//                                        it.sendMessage("ADHD者:${(ps[0] as Player).displayName}")
+//                                    }
 
                                     ps[0].sendMessage("まだ始まってません!落ち着いて!")
                                     return@setInvoker true
@@ -295,10 +295,54 @@ class Nepleague : JavaPlugin() {
                 .addTabChain(TabChain(TabObject("result"), TabObject("chat")))
                 .setInvoker { nepleague, commandSender, strings ->
                     resultMode = ResultMode.Chat
-                    if (commandSender is Player) {
-                        rightClickWaiter!!.players.add(commandSender)
-                        commandSender.sendMessage("右クリックで全チームの結果発表ができるようになりました!")
+
+                    if (!isFinished) {
+                        commandSender.sendMessage("回答を締め切っていませんよ...")
+                        commandSender.sendMessage("/nep finishですよ...")
+                        return@setInvoker true
                     }
+
+                    Bukkit.broadcastMessage("結果発表!")
+                    Bukkit.broadcastMessage("模範解答:${currentString}")
+                    teamManager.teams
+                        // 重複表示回避処理
+                        .filter { !it.titleProvider.isChated }
+                        .forEach { team ->
+                            team.titleProvider.isOpened = true
+                            team.titleProvider.isChated = true
+
+                            val comps = team.getString(currentString.length).mapIndexed { index, c ->
+                                Pair(team.answers[index + 1]?.first, c)
+                            }.map {
+                                if (it.first != null) {
+                                    ComponentUtils.fromText("" + it.second)
+                                        .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(it.first!!.displayName()))
+                                } else {
+                                    ComponentUtils.fromText("" + it.second)
+                                        .hoverEvent(
+                                            net.kyori.adventure.text.event.HoverEvent.showText(
+                                                ComponentUtils.fromText(
+                                                    "[無回答]"
+                                                )
+                                            )
+                                        )
+                                }
+                            }
+
+                            var comp = if (team.isCorrect()) {
+                                ComponentUtils.fromText("" + ChatColor.BLUE + "${team.displayName}:" + ChatColor.RESET)
+                            } else {
+                                ComponentUtils.fromText("" + ChatColor.RED + "${team.displayName}:" + ChatColor.RESET)
+                            }
+
+                            comps.forEach {
+                                comp = comp.append(it)
+                            }
+
+                            Bukkit.getOnlinePlayers().forEach { player ->
+                                player.sendMessage(comp)
+                            }
+                        }
                     return@setInvoker true
                 },
             CommanderBuilder<Nepleague>()

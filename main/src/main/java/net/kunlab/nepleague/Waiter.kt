@@ -2,11 +2,10 @@ package net.kunlab.nepleague
 
 import com.github.bun133.flylib2.utils.ComponentUtils
 import io.papermc.paper.event.player.AsyncChatEvent
-import org.bukkit.Bukkit
-import org.bukkit.ChatColor
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.scheduler.BukkitRunnable
 
@@ -50,6 +49,10 @@ class RightClickWaiter(private val plugin: Nepleague) : Listener, BukkitRunnable
 
     @EventHandler
     fun onRightClick(e: PlayerInteractEvent) {
+        if (!(e.action == Action.RIGHT_CLICK_AIR || e.action == Action.RIGHT_CLICK_BLOCK)) {
+            return
+        }
+
         if (waiter.containsKey(e.player) && waiter[e.player]!! > 0) {
             return
         }
@@ -61,54 +64,7 @@ class RightClickWaiter(private val plugin: Nepleague) : Listener, BukkitRunnable
             }
             when (plugin.resultMode) {
                 Nepleague.ResultMode.Chat -> {
-                    Bukkit.broadcastMessage("結果発表!")
-                    Bukkit.broadcastMessage("模範解答:${plugin.currentString}")
-                    plugin.teamManager.teams
-                        // 重複表示回避処理
-                        .filter { !it.titleProvider.isChated }
-                        .forEach { team ->
-                            team.titleProvider.isOpened = true
-                            team.titleProvider.isChated = true
-
-                            val comps = team.getString(plugin.currentString.length).mapIndexed { index, c ->
-                                Pair(team.answers[index + 1]?.first, c)
-                            }.map {
-                                if (it.first != null) {
-                                    ComponentUtils.fromText("" + it.second)
-                                        .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(it.first!!.displayName()))
-                                } else {
-                                    ComponentUtils.fromText("" + it.second)
-                                        .hoverEvent(
-                                            net.kyori.adventure.text.event.HoverEvent.showText(
-                                                ComponentUtils.fromText(
-                                                    "[無回答]"
-                                                )
-                                            )
-                                        )
-                                }
-                            }
-
-//                            val comps = team.answers.map {
-//                                ComponentUtils.fromText("" + it.value.second)
-//                                    .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(it.value.first.displayName()))
-//                            }
-
-                            var comp = if (team.isCorrect()) {
-                                ComponentUtils.fromText("" + ChatColor.BLUE + "${team.displayName}:" + ChatColor.RESET)
-                            } else {
-                                ComponentUtils.fromText("" + ChatColor.RED + "${team.displayName}:" + ChatColor.RESET)
-                            }
-
-                            comps.forEach {
-                                comp = comp.append(it)
-                            }
-
-                            Bukkit.getOnlinePlayers().forEach { player ->
-                                player.sendMessage(comp)
-                            }
-//                        使えません残念でした！！！！
-//                        Bukkit.broadcast(comp)
-                        }
+                    // Nothing
                 }
                 Nepleague.ResultMode.Title -> {
                     // TODO 演出

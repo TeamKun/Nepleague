@@ -34,3 +34,9 @@
 /nep finish
 ```
 ゲーム終了します(結果発表前に必要です)
+### Input Command
+```
+/nep input <InternalTeamName> <Index> <playerSelector>
+```
+Indexは0始まりではなく1始まりです
+例)1文字目 -> 1

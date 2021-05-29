@@ -330,9 +330,9 @@ class Nepleague : JavaPlugin() {
                             }
 
                             var comp = if (team.isCorrect()) {
-                                ComponentUtils.fromText("" + ChatColor.BLUE + "${team.displayName}:" + ChatColor.RESET)
-                            } else {
                                 ComponentUtils.fromText("" + ChatColor.RED + "${team.displayName}:" + ChatColor.RESET)
+                            } else {
+                                ComponentUtils.fromText("" + ChatColor.BLUE + "${team.displayName}:" + ChatColor.RESET)
                             }
 
                             comps.forEach {

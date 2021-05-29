@@ -236,7 +236,7 @@ class Nepleague : JavaPlugin() {
                         if (num != null) {
                             val ps = Bukkit.selectEntities(commandSender, strings[3])
                             if (ps.size == 1 && ps[0] is Player) {
-                                if (!isGoingOn) {
+                                if (!isGoingOn || isFinished) {
                                     // 晒上げ
 //                                    Bukkit.getOnlinePlayers().filter { it != ps[0] }.forEach {
 //                                        it.sendMessage("ADHD者:${(ps[0] as Player).displayName}")
@@ -267,14 +267,7 @@ class Nepleague : JavaPlugin() {
                 .addTabChain(TabChain(TabObject("finish")))
                 .setInvoker { nepleague, commandSender, strings ->
                     isFinished = true
-                    Bukkit.getOnlinePlayers().forEach {
-                        it.showTitle(
-                            Title.title(
-                                ComponentUtils.fromText("締め切り!"),
-                                ComponentUtils.fromText("")
-                            )
-                        )
-                    }
+                    Bukkit.broadcastMessage("締め切り!")
                     return@setInvoker true
                 },
             CommanderBuilder<Nepleague>()

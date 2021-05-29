@@ -21,7 +21,7 @@ class TeamManager(val plugin: Nepleague) : BukkitRunnable() {
 
     // Showing Titles
     override fun run() {
-        if (plugin.isGoingOn && plugin.resultMode == Nepleague.ResultMode.Title) {
+        if (plugin.isGoingOn /*&& plugin.resultMode == Nepleague.ResultMode.Title*/) {
             Bukkit.getOnlinePlayers().forEach {
                 TitleProvider.getProvider(it, plugin.configManager.rayDistance, plugin.configManager.maxDistance)
                     ?.showTo(it)

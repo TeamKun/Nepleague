@@ -2,6 +2,7 @@ package net.kunlab.nepleague
 
 import com.github.bun133.flylib2.utils.ComponentUtils
 import io.papermc.paper.event.player.AsyncChatEvent
+import net.kyori.adventure.sound.Sound
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -68,7 +69,15 @@ class RightClickWaiter(private val plugin: Nepleague) : Listener, BukkitRunnable
                 }
                 Nepleague.ResultMode.Title -> {
                     // TODO 演出
-                    TitleProvider.getProvider(e.player, plugin)?.isOpened = true
+                    val provider = TitleProvider.getProvider(e.player, plugin)
+                    if (provider != null) {
+                        provider.isOpened = true
+                        if(provider.team.isCorrect()){
+                            Sounds.Correct.sound()
+                        }else{
+                            Sounds.Wrong.sound()
+                        }
+                    }
                 }
             }
 

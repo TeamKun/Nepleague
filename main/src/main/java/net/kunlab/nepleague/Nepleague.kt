@@ -2,24 +2,12 @@ package net.kunlab.nepleague
 
 import com.github.bun133.flylib2.commands.*
 import com.github.bun133.flylib2.utils.ComponentUtils
-import io.papermc.paper.event.player.AsyncChatEvent
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.title.Title
-import net.md_5.bungee.api.chat.BaseComponent
-import net.md_5.bungee.api.chat.HoverEvent
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
-import org.bukkit.Location
 import org.bukkit.command.BlockCommandSender
 import org.bukkit.entity.Player
-import org.bukkit.event.EventHandler
-import org.bukkit.event.Listener
-import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.plugin.java.JavaPlugin
-import org.bukkit.scheduler.BukkitRunnable
-import org.jetbrains.annotations.NotNull
-import java.time.Duration
 
 
 class Nepleague : JavaPlugin() {
@@ -54,7 +42,7 @@ class Nepleague : JavaPlugin() {
                 .addTabChain(TabChain(TabObject("start"), TabPart.EmptySelector()))
                 .setInvoker { nepleague, commandSender, strings ->
                     if (!strings[1].matches(Regex("^[\\u3040-\\u309F]+\$"))) {
-                        commandSender.sendMessage("ひらがなを入力してください")
+                        warn("ひらがなを入力してください",commandSender)
                         return@setInvoker false
                     }
 
@@ -71,6 +59,9 @@ class Nepleague : JavaPlugin() {
                             )
                         )
                     }
+
+                    Sounds.OnStart.sound()
+
                     return@setInvoker true
                 },
 
@@ -90,22 +81,22 @@ class Nepleague : JavaPlugin() {
                     if (commandSender is Player) {
                         val loc = commandSender.location
                         if (teamManager.checkAlreadyExists(strings[2])) {
-                            commandSender.sendMessage("その名前のチームは既に登録されています")
+                            error("その名前のチームは既に登録されています",commandSender)
                             return@setInvoker false
                         }
 
                         teamManager.addTeam(loc, strings[2])
-                        commandSender.sendMessage("Added Team:${strings[2]}")
+                        log("Added Team:${strings[2]}",commandSender)
                         return@setInvoker true
                     } else if (commandSender is BlockCommandSender) {
                         val loc = commandSender.block.location
                         if (teamManager.checkAlreadyExists(strings[2])) {
-                            commandSender.sendMessage("その名前のチームは既に登録されています")
+                            error("その名前のチームは既に登録されています",commandSender)
                             return@setInvoker false
                         }
 
                         teamManager.addTeam(loc, strings[2])
-                        commandSender.sendMessage("Added Team:${strings[2]}")
+                        log("Added Team:${strings[2]}",commandSender)
                         return@setInvoker true
                     } else {
                         // From Server
@@ -127,24 +118,23 @@ class Nepleague : JavaPlugin() {
                     if (commandSender is Player) {
                         val loc = commandSender.location
                         if (teamManager.checkAlreadyExists(strings[2])) {
-                            commandSender.sendMessage("その名前のチームは既に登録されています")
+                            error("その名前のチームは既に登録されています",commandSender)
                             return@setInvoker false
                         }
 
                         teamManager.addTeam(loc, strings[2], strings[3])
-                        commandSender.sendMessage("Added Team:${strings[2]} displayname:${strings[3]}")
+                        log("Added Team:${strings[2]} displayname:${strings[3]}",commandSender)
 
                         configManager.save()
                         return@setInvoker true
                     } else if (commandSender is BlockCommandSender) {
                         val loc = commandSender.block.location
                         if (teamManager.checkAlreadyExists(strings[2])) {
-                            commandSender.sendMessage("その名前のチームは既に登録されています")
-                            return@setInvoker false
+                            error("その名前のチームは既に登録されています",commandSender)
                         }
 
                         teamManager.addTeam(loc, strings[2], strings[3])
-                        commandSender.sendMessage("Added Team:${strings[2]} displayname:${strings[3]}")
+                        log("Added Team:${strings[2]} displayname:${strings[3]}",commandSender)
                         configManager.save()
                         return@setInvoker true
                     } else {
@@ -159,11 +149,11 @@ class Nepleague : JavaPlugin() {
                 .addTabChain(TabChain(TabObject("team"), TabObject("list")))
                 .setInvoker { nepleague, commandSender, strings ->
                     teamManager.teams.forEach {
-                        commandSender.sendMessage("InteranalName:${it.internalName},DisplayName:${it.displayName},X:${it.loc.x},Y:${it.loc.y},Z:${it.loc.z}")
+                        log("InteranalName:${it.internalName},DisplayName:${it.displayName},X:${it.loc.x},Y:${it.loc.y},Z:${it.loc.z}",commandSender)
                     }
 
                     if (teamManager.teams.isEmpty()) {
-                        commandSender.sendMessage("<Empty>")
+                        log("<Empty>")
                     }
                     return@setInvoker true
                 },
@@ -177,7 +167,7 @@ class Nepleague : JavaPlugin() {
                     val teamName = strings[2]
                     if (teamManager.teams.filter { it.internalName == teamName }.isNotEmpty()) {
                         teamManager.teams.removeAll { it.internalName == teamName }
-                        commandSender.sendMessage("Removed!")
+                        log("Removed!")
                         return@setInvoker true
                     }
                     return@setInvoker false
@@ -241,23 +231,22 @@ class Nepleague : JavaPlugin() {
 //                                    Bukkit.getOnlinePlayers().filter { it != ps[0] }.forEach {
 //                                        it.sendMessage("ADHD者:${(ps[0] as Player).displayName}")
 //                                    }
-
-                                    ps[0].sendMessage("まだ始まってません!落ち着いて!")
+                                    warn("まだ始まってません!落ち着いて!",ps[0])
                                     return@setInvoker true
                                 }
                                 InputWaiter(t, num, ps[0] as Player, this)
                                 return@setInvoker true
                             } else {
-                                commandSender.sendMessage("プレイヤーが指定されていません")
+                                error("プレイヤーが指定されていません",commandSender)
                                 return@setInvoker false
                             }
                         } else {
-                            commandSender.sendMessage("数字を入力してください")
+                            error("数字を入力してください",commandSender)
                             return@setInvoker false
                         }
                     } else {
                         println("More than 1 team matched!")
-                        commandSender.sendMessage("エラーが発生しました")
+                        error("エラーが発生しました",commandSender)
                         return@setInvoker false
                     }
                 },
@@ -267,7 +256,8 @@ class Nepleague : JavaPlugin() {
                 .addTabChain(TabChain(TabObject("finish")))
                 .setInvoker { nepleague, commandSender, strings ->
                     isFinished = true
-                    Bukkit.broadcastMessage("締め切り!")
+                    Sounds.OnFinish.sound()
+                    info("締め切り!")
                     return@setInvoker true
                 },
             CommanderBuilder<Nepleague>()
@@ -275,10 +265,11 @@ class Nepleague : JavaPlugin() {
 //                .addFilter(CommanderBuilder.Filters().filterNotPlayer())
                 .addTabChain(TabChain(TabObject("result"), TabObject("title")))
                 .setInvoker { nepleague, commandSender, strings ->
+
                     resultMode = ResultMode.Title
                     if (commandSender is Player) {
                         rightClickWaiter!!.players.add(commandSender)
-                        commandSender.sendMessage("右クリックでそのチームの結果発表ができるようになりました!")
+                        info("右クリックでそのチームの結果発表ができるようになりました!",commandSender)
                     }
                     return@setInvoker true
                 },
@@ -290,28 +281,30 @@ class Nepleague : JavaPlugin() {
                     resultMode = ResultMode.Chat
 
                     if (!isFinished) {
-                        commandSender.sendMessage("回答を締め切っていませんよ...")
-                        commandSender.sendMessage("/nep finishですよ...")
+                        warn("回答を締め切っていませんよ...")
+                        warn("/nep finishですよ...")
                         return@setInvoker true
                     }
 
-                    Bukkit.broadcastMessage("結果発表!")
-                    Bukkit.broadcastMessage("模範解答:${currentString}")
+                    Sounds.OnStart.sound()
+
+                    info("結果発表!")
+                    info("模範解答:${currentString}")
+                    Bukkit.broadcastMessage("") // 空白行
+
                     teamManager.teams
                         // 重複表示回避処理
-                        .filter { !it.titleProvider.isChated }
+//                                    .filter { !it.titleProvider.isChated }
                         .forEach { team ->
                             team.titleProvider.isOpened = true
                             team.titleProvider.isChated = true
 
-                            val comps = team.getString(currentString.length).mapIndexed { index, c ->
-                                Pair(team.answers[index + 1]?.first, c)
-                            }.map {
-                                if (it.first != null) {
-                                    ComponentUtils.fromText("" + it.second)
-                                        .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(it.first!!.displayName()))
+                            val comps = team.getStringWithPlayer(currentString.length).map {
+                                if (it.second != null) {
+                                    ComponentUtils.fromText("" + it.first)
+                                        .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(it.second!!.displayName()))
                                 } else {
-                                    ComponentUtils.fromText("" + it.second)
+                                    ComponentUtils.fromText("" + it.first)
                                         .hoverEvent(
                                             net.kyori.adventure.text.event.HoverEvent.showText(
                                                 ComponentUtils.fromText(
@@ -323,9 +316,9 @@ class Nepleague : JavaPlugin() {
                             }
 
                             var comp = if (team.isCorrect()) {
-                                ComponentUtils.fromText("" + ChatColor.RED + "${team.displayName}:" + ChatColor.RESET)
+                                ComponentUtils.fromText("" + ChatColor.RED + team.displayName + ChatColor.WHITE + ":" + ChatColor.RESET)
                             } else {
-                                ComponentUtils.fromText("" + ChatColor.BLUE + "${team.displayName}:" + ChatColor.RESET)
+                                ComponentUtils.fromText("" + ChatColor.BLUE + team.displayName + ChatColor.WHITE + ":" + ChatColor.RESET)
                             }
 
                             comps.forEach {
@@ -335,6 +328,8 @@ class Nepleague : JavaPlugin() {
                             Bukkit.getOnlinePlayers().forEach { player ->
                                 player.sendMessage(comp)
                             }
+
+                            Bukkit.broadcastMessage("") // 空白行
                         }
                     return@setInvoker true
                 },
@@ -350,6 +345,7 @@ class Nepleague : JavaPlugin() {
                     isFinished = false
                     isInput = false
                     currentString = ""
+                    info("リセットしました!",commandSender)
 
                     return@setInvoker true
                 }

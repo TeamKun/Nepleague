@@ -12,6 +12,7 @@ import org.bukkit.scheduler.BukkitRunnable
 
 class InputWaiter(val team: Team, val index: Int, val player: Player, val plugin: Nepleague) : Listener {
     init {
+        team.waiters.add(this)
         plugin.server.pluginManager.registerEvents(this, plugin)
         player.sendMessage("1文字ひらがなを入力してください")
     }
@@ -57,7 +58,8 @@ class RightClickWaiter(private val plugin: Nepleague) : Listener, BukkitRunnable
         if (waiter.containsKey(e.player) && waiter[e.player]!! > 0) {
             return
         }
-        if (players.contains(e.player)) {
+
+        if (players.contains(e.player) && plugin.isGoingOn) {
             if (!plugin.isFinished) {
                 e.player.sendMessage("回答を締め切っていませんよ...")
                 e.player.sendMessage("/nep finishですよ...")
@@ -70,7 +72,7 @@ class RightClickWaiter(private val plugin: Nepleague) : Listener, BukkitRunnable
                 Nepleague.ResultMode.Title -> {
                     // TODO 演出
                     val provider = TitleProvider.getProvider(e.player, plugin)
-                    if (provider != null) {
+                    if (provider != null && !provider.isOpened) {
                         provider.isOpened = true
                         if(provider.team.isCorrect()){
                             Sounds.Correct.sound()

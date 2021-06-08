@@ -345,6 +345,7 @@ class Nepleague : JavaPlugin() {
                     isFinished = false
                     isInput = false
                     currentString = ""
+                    rightClickWaiter?.players?.clear()
                     info("リセットしました!",commandSender)
 
                     return@setInvoker true

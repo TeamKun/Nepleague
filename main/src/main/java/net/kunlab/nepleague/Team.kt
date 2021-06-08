@@ -34,6 +34,7 @@ class TeamManager(val plugin: Nepleague) : BukkitRunnable() {
 class Team(var loc: Location, val internalName: String, var displayName: String, plugin: Nepleague) {
     var answers = mutableMapOf<Int, Pair<Player, Char>>()
     var titleProvider: TitleProvider = TitleProvider(this, plugin = plugin)
+    var waiters = mutableListOf<InputWaiter>()
 
     fun reset() {
         answers = mutableMapOf()
@@ -57,7 +58,7 @@ class Team(var loc: Location, val internalName: String, var displayName: String,
         }
     }
 
-    fun getString(size: Int): String {
+    fun getString(size: Int, p: Player): String {
         val s = StringBuilder(size + 1)
         for (i in 0 until size) {
             val d = answers[i + 1]?.second
@@ -72,27 +73,58 @@ class Team(var loc: Location, val internalName: String, var displayName: String,
                         s.append("" + ChatColor.BLUE + d + ChatColor.RESET)
                     }
                 } else {
-                    s.append(d)
+                    if (waiters.any { it.player == p && !it.isAlready && it.index == i + 1 }) {
+                        // このプレイヤーが入力中のInputWaiterあり
+                        s.append("" + ChatColor.YELLOW + d + ChatColor.RESET)
+                    } else {
+                        // なし
+                        s.append(d)
+                    }
                 }
             } else {
-                s.append('☓')
+                if (waiters.any { it.player == p && !it.isAlready && it.index == i + 1 }) {
+                    // このプレイヤーが入力中のInputWaiterあり
+                    if (titleProvider.isOpened) {
+                        s.append("" + ChatColor.BLUE + '□' + ChatColor.RESET)
+                    } else {
+                        s.append("" + ChatColor.YELLOW + '□' + ChatColor.RESET)
+                    }
+                } else {
+                    // なし
+                    if (titleProvider.isOpened) {
+                        s.append("" + ChatColor.BLUE + '_' + ChatColor.RESET)
+                    } else {
+                        s.append('□')
+                    }
+                }
             }
         }
         if (titleProvider.isOpened) {
             return s.toString()
         } else {
             for (i in 0 until size) {
-                if (s[i] != '☓') {
+                if (s[i].toString().matches(Regex("^[\\u3040-\\u309F]+\$"))) {
                     s.setCharAt(i, '■')
                 } else {
-                    s.setCharAt(i, '□')
+//                    s.setCharAt(i, '_')
                 }
             }
+
+            s.toString()
+                .indexedFilter { it == '_' || it == '■' || it.toString().matches(Regex("^[\\u3040-\\u309F]+\$")) }
+                .forEach {
+                    val pp = answers[it.first + 1]?.first
+                    if (p == pp) {
+                        // この文字は見ているプレイヤーが入力した
+                        s.setCharAt(it.first,answers[it.first + 1]!!.second)
+                    }
+                }
+
             return s.toString()
         }
     }
 
-    fun getStringRaw(size:Int): String {
+    fun getStringRaw(size: Int): String {
         val s = StringBuilder(size + 1)
         for (i in 0 until size) {
             val d = answers[i + 1]?.second
@@ -110,14 +142,18 @@ class Team(var loc: Location, val internalName: String, var displayName: String,
                     s.append(d)
                 }
             } else {
-                s.append('☓')
+                if (titleProvider.isOpened) {
+                    s.append('_')
+                } else {
+                    s.append('□')
+                }
             }
         }
         if (titleProvider.isOpened) {
             return s.toString()
         } else {
             for (i in 0 until size) {
-                if (s[i] != '☓') {
+                if (s[i] != '□') {
                     s.setCharAt(i, '■')
                 } else {
                     s.setCharAt(i, '□')
@@ -129,7 +165,7 @@ class Team(var loc: Location, val internalName: String, var displayName: String,
 
     fun getStringWithPlayer(size: Int): MutableList<Pair<String, Player?>> {
         val list = mutableListOf<Pair<String, Player?>>()
-        for (i in 0 until size) list.add(Pair("",null))
+        for (i in 0 until size) list.add(Pair("", null))
 
         for (i in 0 until size) {
             val d = answers[i + 1]?.second
@@ -147,17 +183,21 @@ class Team(var loc: Location, val internalName: String, var displayName: String,
                     list[i] = Pair("" + d, answers[i + 1]?.first)
                 }
             } else {
-                list[i] = Pair("" + '☓', null)
+                if (titleProvider.isOpened) {
+                    list[i] = Pair("" + ChatColor.BLUE + '_' + ChatColor.RESET, null)
+                } else {
+                    list[i] = Pair("" + '□', null)
+                }
             }
         }
         if (titleProvider.isOpened) {
             return list
         } else {
             for (i in 0 until size) {
-                if (list[i].first != "☓") {
-                    list[i] = Pair("■",answers[i + 1]?.first)
+                if (list[i].first != "□") {
+                    list[i] = Pair("■", answers[i + 1]?.first)
                 } else {
-                    list[i] = Pair("□",answers[i + 1]?.first)
+                    list[i] = Pair("□", answers[i + 1]?.first)
                 }
             }
             return list

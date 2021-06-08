@@ -55,9 +55,10 @@ class TitleProvider(val team: Team, val plugin: Nepleague) {
     fun showTo(p: Player) {
         if (team.getPlayers().contains(p) && !isOpened) {
             //チーム内
-            val s = team.getString(plugin.currentString.length)
+            val s = team.getString(plugin.currentString.length, p)
             val an = team.getPlayerAnswer(p)
             if (an.isEmpty()) {
+                // チーム内だけど何も入力済みじゃない
                 p.showTitle(
                     Title.title(
                         ComponentUtils.fromText(s),
@@ -66,22 +67,29 @@ class TitleProvider(val team: Team, val plugin: Nepleague) {
                     )
                 )
             } else {
-                val sb = StringBuilder(s)
+                // TODO たぶんというか確実にバグる(ChatColorが2文字分持ってってしまう)
+                var last = 0
                 an.forEach { (t, u) ->
-                    sb.setCharAt(t - 1, u.second)
-                    p.showTitle(
-                        Title.title(
-                            ComponentUtils.fromText(sb.toString()),
-                            ComponentUtils.fromText("" + getAnsColor(team) + team.displayName),
-                            Title.Times.of(Duration.ofSeconds(0), Duration.ofSeconds(1), Duration.ofSeconds(0))
-                        )
-                    )
+                    s.indexedFilter { it == '_' || it == '■' || it.toString().matches(Regex("^[\\u3040-\\u309F]+\$")) }
+                        .forEach {
+                            s.replaceRange(it.first, it.first, u.second.toString())
+                        }
                 }
+
+                p.showTitle(
+                    Title.title(
+                        ComponentUtils.fromText(s),
+                        ComponentUtils.fromText("" + getAnsColor(team) + team.displayName),
+                        Title.Times.of(Duration.ofSeconds(0), Duration.ofSeconds(1), Duration.ofSeconds(0))
+                    )
+                )
             }
         } else {
+            // チーム外
+
             p.showTitle(
                 Title.title(
-                    ComponentUtils.fromText(team.getString(plugin.currentString.length)),
+                    ComponentUtils.fromText(team.getString(plugin.currentString.length, p)),
                     ComponentUtils.fromText("" + getAnsColor(team) + team.displayName),
                     Title.Times.of(Duration.ofSeconds(0), Duration.ofSeconds(1), Duration.ofSeconds(0))
                 )
@@ -100,4 +108,16 @@ class TitleProvider(val team: Team, val plugin: Nepleague) {
             else -> ChatColor.BLUE
         }
     }
+}
+
+fun String.filter(f: (Char) -> Boolean): List<Char> {
+    return this.toCharArray().filter(f)
+}
+
+fun String.indexed(): List<Pair<Int, Char>> {
+    return this.toCharArray().mapIndexed { index, c -> Pair(index, c) }
+}
+
+fun String.indexedFilter(f: (Char) -> Boolean): List<Pair<Int, Char>> {
+    return this.indexed().filter { f(it.second) }
 }

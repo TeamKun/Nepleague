@@ -12,7 +12,7 @@ fun isValid(string: String): Boolean {
 }
 
 // 文字列を変換したうえで有効か
-fun isMatchValid(string:String) = isValid(mapToValid(string))
+fun isMapValid(string: String) = isValid(mapToValid(string))
 
 fun isValid(c: Char): Boolean {
     val l = c.code
@@ -22,11 +22,14 @@ fun isValid(c: Char): Boolean {
     } else if (l in 0x3041..0x3094) {
         // ぁ to ゔ
         return true
+    } else if (l in 0x0030..0x0039) {
+        // 0 to 9
+        return true
     }
     return false
 }
 
-fun isMatchValid(c:Char):Boolean = isValid(mapToValid(c))
+fun isMapValid(c: Char): Boolean = isValid(mapToValid(c))
 
 // できるだけ有効な文字列に変換する
 fun mapToValid(string: String): String {
@@ -60,6 +63,15 @@ fun forceMapToValid(c: Char): Char? {
     } else if (l in 0x0061..0x007A) {
         // 小文字英語
         return Char(l - 0x0020)
+    } else if (l in 0xff10..0xff19) {
+        // 全角数字
+        return Char(l - 0xfee0)
+    } else if (l in 0xff21..0xff3a) {
+        // 全角大文字アルファベット
+        return Char(l - 0xfee0)
+    } else if (l in 0xff41..0xff5a) {
+        // 全角小文字アルファベット
+        return Char(l - 0xff00)
     }
 
     return null

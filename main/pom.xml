@@ -6,7 +6,7 @@
 
     <groupId>net.kunlab</groupId>
     <artifactId>nepleague</artifactId>
-    <version>1.0.9</version>
+    <version>1.0.10</version>
     <packaging>jar</packaging>
 
     <name>Nepleague</name>

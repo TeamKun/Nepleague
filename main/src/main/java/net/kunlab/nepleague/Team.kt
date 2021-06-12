@@ -1,5 +1,6 @@
 package net.kunlab.nepleague
 
+import com.github.bun133.flylib2.utils.ComponentUtils
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.Location
@@ -38,6 +39,7 @@ class Team(var loc: Location, val internalName: String, var displayName: String,
 
     fun reset() {
         answers = mutableMapOf()
+        waiters = mutableListOf()
         titleProvider.isOpened = false
         titleProvider.isChated = false
     }
@@ -75,7 +77,7 @@ class Team(var loc: Location, val internalName: String, var displayName: String,
                 } else {
                     if (waiters.any { it.player == p && !it.isAlready && it.index == i + 1 }) {
                         // このプレイヤーが入力中のInputWaiterあり
-                        s.append("" + ChatColor.YELLOW + d + ChatColor.RESET)
+                        s.append("" + ChatColor.YELLOW + d)
                     } else {
                         // なし
                         s.append(d)
@@ -102,16 +104,16 @@ class Team(var loc: Location, val internalName: String, var displayName: String,
         if (titleProvider.isOpened) {
             return s.toString()
         } else {
-            for (i in 0 until size) {
-                if (isMatchValid(s[i])) {
-                    s.setCharAt(i, '■')
-                } else {
+//            for (i in 0 until size) {
+//                if (isMapValid(s[i])) {
+//                    s.setCharAt(i, '■')
+//                } else {
 //                    s.setCharAt(i, '_')
-                }
-            }
+//                }
+//            }
 
             s.toString()
-                .indexedFilter { it == '_' || it == '■' || isMatchValid(it) }
+                .indexedFilter { it == '_' || it == '■' || isMapValid(it) }
                 .forEach {
                     val pp = answers[it.first + 1]?.first
                     if (p == pp) {
@@ -119,7 +121,6 @@ class Team(var loc: Location, val internalName: String, var displayName: String,
                         s.setCharAt(it.first, answers[it.first + 1]!!.second)
                     }
                 }
-
             return s.toString()
         }
     }

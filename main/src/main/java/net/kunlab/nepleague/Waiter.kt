@@ -2,7 +2,6 @@ package net.kunlab.nepleague
 
 import com.github.bun133.flylib2.utils.ComponentUtils
 import io.papermc.paper.event.player.AsyncChatEvent
-import net.kyori.adventure.sound.Sound
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -14,7 +13,7 @@ class InputWaiter(val team: Team, val index: Int, val player: Player, val plugin
     init {
         team.waiters.add(this)
         plugin.server.pluginManager.registerEvents(this, plugin)
-        player.sendMessage("1文字ひらがなを入力してください")
+        player.sendMessage("1文字ひらがな、アルファベット、数字を入力してください")
     }
 
     var isAlready = false
@@ -23,12 +22,12 @@ class InputWaiter(val team: Team, val index: Int, val player: Player, val plugin
     fun onChat(e: AsyncChatEvent) {
         if (e.player === player && !isAlready && !plugin.isFinished) {
             val s = mapToValid(ComponentUtils.toText(e.message()))
-            if (s.length == 1 && isMatchValid(s)) {
+            if (s.length == 1 && isMapValid(s)) {
                 team.set(index, player, mapToValid(s[0]))
                 isAlready = true
                 player.sendMessage("「${mapToValid(s[0])}」を入力しました")
             } else {
-                player.sendMessage("1文字ひらがなを入力してください")
+                player.sendMessage("1文字ひらがな、アルファベット、数字を入力してください")
             }
             e.isCancelled = true
         }

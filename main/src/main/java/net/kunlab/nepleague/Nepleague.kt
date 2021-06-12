@@ -41,8 +41,8 @@ class Nepleague : JavaPlugin() {
 //                .addFilter(CommanderBuilder.Filters().filterNotPlayer())
                 .addTabChain(TabChain(TabObject("start"), TabPart.EmptySelector()))
                 .setInvoker { nepleague, commandSender, strings ->
-                    if (!isMatchValid(strings[1])) {
-                        warn("ひらがな、アルファベットを入力してください",commandSender)
+                    if (!isMapValid(strings[1])) {
+                        warn("1文字ひらがな、アルファベット、数字を入力してください",commandSender)
                         return@setInvoker false
                     }
 
@@ -347,7 +347,6 @@ class Nepleague : JavaPlugin() {
                     currentString = ""
                     rightClickWaiter?.players?.clear()
                     info("リセットしました!",commandSender)
-
                     return@setInvoker true
                 }
         )

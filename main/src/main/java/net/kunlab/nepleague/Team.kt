@@ -75,12 +75,12 @@ class Team(var loc: Location, val internalName: String, var displayName: String,
                         s.append("" + ChatColor.BLUE + d + ChatColor.RESET)
                     }
                 } else {
-                    if (waiters.any { it.player == p && !it.isAlready && it.index == i + 1 }) {
+                    if (waiters.any { it.player == p && it.index == i + 1 }) {
                         // このプレイヤーが入力中のInputWaiterあり
-                        s.append("" + ChatColor.YELLOW + d)
+                        s.append("" + ChatColor.YELLOW + d + ChatColor.RESET)
                     } else {
                         // なし
-                        s.append(d)
+                        s.append('■')
                     }
                 }
             } else {
@@ -112,15 +112,15 @@ class Team(var loc: Location, val internalName: String, var displayName: String,
 //                }
 //            }
 
-            s.toString()
-                .indexedFilter { it == '_' || it == '■' || isMapValid(it) }
-                .forEach {
-                    val pp = answers[it.first + 1]?.first
-                    if (p == pp) {
-                        // この文字は見ているプレイヤーが入力した
-                        s.setCharAt(it.first, answers[it.first + 1]!!.second)
-                    }
-                }
+//            s.toString()
+//                .indexedFilter { it == '_' || it == '■' || isMapValid(it) }
+//                .forEach {
+//                    val pp = answers[it.first + 1]?.first
+//                    if (p == pp) {
+//                         この文字は見ているプレイヤーが入力した
+//                        s.setCharAt(it.first, answers[it.first + 1]!!.second)
+//                    }
+//                }
             return s.toString()
         }
     }

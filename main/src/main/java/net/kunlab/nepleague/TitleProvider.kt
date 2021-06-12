@@ -70,7 +70,7 @@ class TitleProvider(val team: Team, val plugin: Nepleague) {
                 // TODO たぶんというか確実にバグる(ChatColorが2文字分持ってってしまう)
                 var last = 0
                 an.forEach { (t, u) ->
-                    s.indexedFilter { it == '_' || it == '■' || it.toString().matches(Regex("^[\\u3040-\\u309F]+\$")) }
+                    s.indexedFilter { it == '_' || it == '■' || isMatchValid(it) }
                         .forEach {
                             s.replaceRange(it.first, it.first, u.second.toString())
                         }

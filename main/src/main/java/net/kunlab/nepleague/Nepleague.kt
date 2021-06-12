@@ -41,13 +41,13 @@ class Nepleague : JavaPlugin() {
 //                .addFilter(CommanderBuilder.Filters().filterNotPlayer())
                 .addTabChain(TabChain(TabObject("start"), TabPart.EmptySelector()))
                 .setInvoker { nepleague, commandSender, strings ->
-                    if (!strings[1].matches(Regex("^[\\u3040-\\u309F]+\$"))) {
-                        warn("ひらがなを入力してください",commandSender)
+                    if (!isMatchValid(strings[1])) {
+                        warn("ひらがな、アルファベットを入力してください",commandSender)
                         return@setInvoker false
                     }
 
                     teamManager.teams.forEach { it.reset() }
-                    currentString = strings[1]
+                    currentString = mapToValid(strings[1])
                     isGoingOn = true
                     isInput = true
                     isFinished = false

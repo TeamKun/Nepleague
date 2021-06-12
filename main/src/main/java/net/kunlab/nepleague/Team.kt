@@ -103,7 +103,7 @@ class Team(var loc: Location, val internalName: String, var displayName: String,
             return s.toString()
         } else {
             for (i in 0 until size) {
-                if (s[i].toString().matches(Regex("^[\\u3040-\\u309F]+\$"))) {
+                if (isMatchValid(s[i])) {
                     s.setCharAt(i, '■')
                 } else {
 //                    s.setCharAt(i, '_')
@@ -111,12 +111,12 @@ class Team(var loc: Location, val internalName: String, var displayName: String,
             }
 
             s.toString()
-                .indexedFilter { it == '_' || it == '■' || it.toString().matches(Regex("^[\\u3040-\\u309F]+\$")) }
+                .indexedFilter { it == '_' || it == '■' || isMatchValid(it) }
                 .forEach {
                     val pp = answers[it.first + 1]?.first
                     if (p == pp) {
                         // この文字は見ているプレイヤーが入力した
-                        s.setCharAt(it.first,answers[it.first + 1]!!.second)
+                        s.setCharAt(it.first, answers[it.first + 1]!!.second)
                     }
                 }
 

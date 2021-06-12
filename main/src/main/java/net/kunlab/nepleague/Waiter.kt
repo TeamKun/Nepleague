@@ -22,11 +22,11 @@ class InputWaiter(val team: Team, val index: Int, val player: Player, val plugin
     @EventHandler
     fun onChat(e: AsyncChatEvent) {
         if (e.player === player && !isAlready && !plugin.isFinished) {
-            val s = ComponentUtils.toText(e.message())
-            if (s.length == 1 && s.matches(Regex("^[\\u3040-\\u309F]+\$"))) {
-                team.set(index, player, s[0])
+            val s = mapToValid(ComponentUtils.toText(e.message()))
+            if (s.length == 1 && isMatchValid(s)) {
+                team.set(index, player, mapToValid(s[0]))
                 isAlready = true
-                player.sendMessage("「${s[0]}」を入力しました")
+                player.sendMessage("「${mapToValid(s[0])}」を入力しました")
             } else {
                 player.sendMessage("1文字ひらがなを入力してください")
             }
@@ -74,9 +74,9 @@ class RightClickWaiter(private val plugin: Nepleague) : Listener, BukkitRunnable
                     val provider = TitleProvider.getProvider(e.player, plugin)
                     if (provider != null && !provider.isOpened) {
                         provider.isOpened = true
-                        if(provider.team.isCorrect()){
+                        if (provider.team.isCorrect()) {
                             Sounds.Correct.sound()
-                        }else{
+                        } else {
                             Sounds.Wrong.sound()
                         }
                     }

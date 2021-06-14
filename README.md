@@ -7,21 +7,25 @@
 /nep team remove <InternalTeamName>
 /nep team list  // For Debug
 ```
+
 ### StartCommand
 ```
 /nep start <string>
 ```
 <string>が正解のゲームを開始
+  
 ### ConfigCommand
 ```
 /nep config <ConfigName> <Data>
 ```
 (Tab補完出るので)
-### Reset Command
+
+### Finish Command
 ```
-/nep reset
+/nep finish
 ```
-！！！！！！！毎ゲーム終了後に必要です！！！！！！！
+ゲーム終了します(結果発表前に必要です)
+
 ### Result Command
 ```
 /nep result chat
@@ -29,11 +33,13 @@
 ```
 チャット/タイトル結果発表モードになります
 (どんなクリックも反応するので気を付けて)
-### Finish Command
+
+### Reset Command
 ```
-/nep finish
+/nep reset
 ```
-ゲーム終了します(結果発表前に必要です)
+！！！！！！！毎ゲーム終了後に必要です！！！！！！！
+
 ### Input Command
 ```
 /nep input <InternalTeamName> <Index> <playerSelector>

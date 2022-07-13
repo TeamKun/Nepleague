@@ -166,5 +166,11 @@
             <artifactId>flylib-reloaded</artifactId>
             <version>0.5.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.github.Bun133</groupId>
+            <artifactId>BukkitFly</artifactId>
+            <version>1a9ead7c9f</version>
+        </dependency>
     </dependencies>
 </project>

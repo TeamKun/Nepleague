@@ -43,7 +43,8 @@ class NepleagueSession(
     }
 
     fun sendQuestion() {
-        val players = players()
-        players.forEach { question.forEach { c -> it.sendMessage(c) } }
+        question.forEach {
+            Bukkit.broadcast(it)
+        }
     }
 }

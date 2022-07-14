@@ -1,6 +1,5 @@
-package net.kunlab.nepleague.map
+package com.github.bun133.nepleague.map
 
-import com.github.bun133.bukkitfly.stack.DelegatedItemStack
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.World

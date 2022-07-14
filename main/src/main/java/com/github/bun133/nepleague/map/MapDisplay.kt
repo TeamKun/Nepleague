@@ -1,10 +1,10 @@
-package net.kunlab.nepleague.map
+package com.github.bun133.nepleague.map
 
-import net.kunlab.nepleague.util.BoxedArray
+import com.github.bun133.nepleague.util.BoxedArray
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
 
-class MapDisplay(private val maps: BoxedArray<MapSingleDisplay>) : Display {
+class MapDisplay(val maps: BoxedArray<MapSingleDisplay>) : Display {
     private val buf = BufferedImage(128 * maps.width, 128 * maps.height, BufferedImage.TYPE_INT_ARGB)
     override fun flush(f: (Graphics2D) -> Unit) {
         val g = buf.graphics as Graphics2D

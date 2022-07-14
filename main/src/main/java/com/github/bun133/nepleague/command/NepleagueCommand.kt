@@ -1,7 +1,7 @@
-package net.kunlab.nepleague.command
+package com.github.bun133.nepleague.command
 
 import dev.kotx.flylib.command.Command
-import net.kunlab.nepleague.NepleaguePlugin
+import com.github.bun133.nepleague.NepleaguePlugin
 import net.kunmc.lab.configlib.ConfigCommandBuilder
 
 class NepleagueCommand(plugin: NepleaguePlugin) : Command("nep") {
@@ -10,6 +10,7 @@ class NepleagueCommand(plugin: NepleaguePlugin) : Command("nep") {
         children(
             ConfigCommandBuilder(plugin.config).build(),
             NepleagueStartCommand(),
+            NepleagueDisplayAddCommand()
         )
     }
 }

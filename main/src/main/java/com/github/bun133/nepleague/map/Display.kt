@@ -1,4 +1,4 @@
-package net.kunlab.nepleague.map
+package com.github.bun133.nepleague.map
 
 import java.awt.Graphics2D
 

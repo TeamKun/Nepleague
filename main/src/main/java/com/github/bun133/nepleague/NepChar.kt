@@ -1,4 +1,4 @@
-package net.kunlab.nepleague
+package com.github.bun133.nepleague
 
 class NepChar(
     private var internalChar: Char? = null

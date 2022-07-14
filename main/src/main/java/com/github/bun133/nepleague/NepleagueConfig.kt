@@ -1,4 +1,4 @@
-package net.kunlab.nepleague
+package com.github.bun133.nepleague
 
 import net.kunmc.lab.configlib.BaseConfig
 import net.kunmc.lab.configlib.value.DoubleValue

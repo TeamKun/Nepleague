@@ -1,4 +1,4 @@
-package net.kunlab.nepleague
+package com.github.bun133.nepleague
 
 import org.bukkit.Bukkit
 import org.bukkit.Sound

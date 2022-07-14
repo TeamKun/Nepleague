@@ -1,4 +1,4 @@
-package net.kunlab.nepleague.util
+package com.github.bun133.nepleague.util
 
 /**
  * 長方形状に整列しているArray
@@ -39,5 +39,19 @@ class BoxedArray<T : Any>(val width: Int, val height: Int) {
 
     private fun checkInside(x: Int, y: Int): Boolean {
         return x >= 0 && y >= 0 && x < width && y < height
+    }
+
+    fun <U : Any> map(f: (T) -> U): BoxedArray<U> {
+        val new = BoxedArray<U>(width, height)
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                val value = this[x, y]
+                if (value != null) {
+                    new[x, y] = f(value)
+                }
+            }
+        }
+
+        return new
     }
 }

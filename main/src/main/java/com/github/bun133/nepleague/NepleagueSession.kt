@@ -1,4 +1,4 @@
-package net.kunlab.nepleague
+package com.github.bun133.nepleague
 
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit

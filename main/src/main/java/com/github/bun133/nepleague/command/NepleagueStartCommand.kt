@@ -1,4 +1,4 @@
-package net.kunlab.nepleague.command
+package com.github.bun133.nepleague.command
 
 import dev.kotx.flylib.command.Command
 

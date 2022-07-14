@@ -1,4 +1,4 @@
-package net.kunlab.nepleague.map
+package com.github.bun133.nepleague.map
 
 import org.bukkit.entity.Player
 import org.bukkit.inventory.meta.MapMeta

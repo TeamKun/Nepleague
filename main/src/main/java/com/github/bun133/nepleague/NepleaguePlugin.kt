@@ -8,6 +8,9 @@ import org.bukkit.plugin.java.JavaPlugin
 class NepleaguePlugin : JavaPlugin() {
     lateinit var config: NepleagueConfig
     lateinit var displayProvider: DisplayProvider
+    private var session: NepleagueSession? = null
+
+    fun session() = session
     override fun onEnable() {
         config = NepleagueConfig(this)
         config.loadConfig()

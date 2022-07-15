@@ -11,7 +11,8 @@ class NepleagueCommand(plugin: NepleaguePlugin) : Command("nep") {
             ConfigCommandBuilder(plugin.config).build(),
             NepleagueStartCommand(),
             NepleagueDisplayAddCommand(),
-            NepleagueInputCommand()
+            NepleagueInputCommand(),
+            NepleagueRemoteInputCommand()
         )
     }
 }

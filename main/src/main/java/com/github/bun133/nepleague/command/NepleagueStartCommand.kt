@@ -17,9 +17,9 @@ class NepleagueStartCommand : Command("start") {
                 val question = typedArgs[1] as String
 
                 // TODO : Start Nepleague
-                (plugin as NepleaguePlugin).startWith(answer, listOf(question).map { text(it) })
+                (plugin as NepleaguePlugin).startWith(answer, question)
 
-                success("お題: $answer でネプリーグを開始しました")
+                success("答え: $answer でネプリーグを開始しました")
             }
         }
     }

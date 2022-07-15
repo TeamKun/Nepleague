@@ -12,7 +12,8 @@ class NepleagueCommand(plugin: NepleaguePlugin) : Command("nep") {
             NepleagueStartCommand(),
             NepleagueDisplayAddCommand(),
             NepleagueInputCommand(),
-            NepleagueRemoteInputCommand()
+            NepleagueRemoteInputCommand(),
+            NepleagueTeamCommand()
         )
     }
 }

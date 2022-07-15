@@ -48,6 +48,10 @@ class DisplayProvider(private val conf: NepleagueConfig) {
         val display = selectDisplay(location)
         if (display != null) {
             setDisplay(team, display)
+            // Add to Config
+            val l = conf.displays.value()
+            l[team] = location
+            conf.displays.value(l)
         }
         return display
     }

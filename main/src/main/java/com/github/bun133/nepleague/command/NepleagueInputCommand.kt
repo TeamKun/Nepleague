@@ -20,7 +20,8 @@ class NepleagueInputCommand : Command("input") {
                         val session = (plugin as NepleaguePlugin).session()
                         if (session != null) {
                             val index = typedArgs[0] as Int
-                            val team = Bukkit.getServer().scoreboardManager.mainScoreboard.getTeam(p.name)
+                            val team =
+                                Bukkit.getServer().scoreboardManager.mainScoreboard.teams.find { it.entries.contains(p.name) }
                             if (team != null) {
                                 if (session.joinedTeam.contains(team)) {
                                     val b = session.setInput(team, index, NepChar(c))

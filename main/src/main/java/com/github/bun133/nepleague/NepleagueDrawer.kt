@@ -29,20 +29,15 @@ class NepleagueDrawer(private val session: NepleagueSession, private val team: T
         when (state) {
             SessionState.BEFORE_START -> {
                 // 全部背景色にする
-                display.flush {
-                    it.color = conf.defaultBackGroundColor()
-                    it.fillRect(0, 0, display.pixelWidth(), display.pixelHeight())
-                }
+                drawBackGround()
             }
             SessionState.WAITING_INPUT -> {
                 // TODO もっとしゃれおつに
                 // 全部背景色にする
-                display.flush {
-                    it.color = conf.defaultBackGroundColor()
-                    it.fillRect(0, 0, display.pixelWidth(), display.pixelHeight())
-                }
+                drawBackGround()
             }
             SessionState.OPEN_ANSWER -> {
+                drawBackGround()
                 flushAllWithCharInfo { graphics2D: Graphics2D, nepChar: NepChar?, index: Int, pair: Pair<Int, Int> ->
                     if (nepChar != null) {
                         val color = conf.fontColor()
@@ -58,6 +53,15 @@ class NepleagueDrawer(private val session: NepleagueSession, private val team: T
                     }
                 }
             }
+        }
+    }
+
+    private fun drawBackGround() {
+        display.flush {
+            it.color = conf.defaultBackGroundColor()
+            val w = display.pixelWidth()
+            val h = display.pixelHeight()
+            it.fillRect(0, 0, w, h)
         }
     }
 

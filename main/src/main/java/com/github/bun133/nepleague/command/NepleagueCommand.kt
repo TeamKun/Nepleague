@@ -8,7 +8,7 @@ class NepleagueCommand(plugin: NepleaguePlugin) : Command("nep") {
     init {
         description("Nepleague Command")
         children(
-            ConfigCommandBuilder(plugin.config).build(),
+            ConfigCommandBuilder(plugin.config).addConfig(plugin.config.drawerConfig).build(),
             NepleagueStartCommand(),
             NepleagueDisplayAddCommand(),
             NepleagueInputCommand(),

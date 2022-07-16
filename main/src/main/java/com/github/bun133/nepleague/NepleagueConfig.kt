@@ -12,8 +12,6 @@ import java.awt.Font
 import java.io.File
 
 class NepleagueConfig(plugin: NepleaguePlugin) : BaseConfig(plugin) {
-    val rayDistance = DoubleValue(10.0, Double.MIN_VALUE, Double.MAX_VALUE)
-    val maxDistance = DoubleValue(10.0, Double.MIN_VALUE, Double.MAX_VALUE)
     val answerAnnounceDelay = IntegerValue(20 * 3, 0, Integer.MAX_VALUE)
     val team = TeamSetValue()
 
@@ -24,7 +22,7 @@ class NepleagueConfig(plugin: NepleaguePlugin) : BaseConfig(plugin) {
 
 class DrawerConfig(val plugin: Plugin) : BaseConfig(plugin) {
     val fontSize = IntegerValue(10, 1, 100)
-    private val fontColor = IntegerValue(0xFFFFFF, 0, 0xFFFFFF)
+    private val fontColor = IntegerValue(0x000000, 0, 0xFFFFFF)
     fun fontColor() = Color(fontColor.value())
 
     private val fontFileName = StringValue("MPLUSRounded1c-Light.ttf")
@@ -36,7 +34,7 @@ class DrawerConfig(val plugin: Plugin) : BaseConfig(plugin) {
         ).deriveFont(fontSize.value().toFloat())
     }
 
-    private val defaultBackGroundColor = IntegerValue(0x000000, 0, 0xFFFFFF)
+    private val defaultBackGroundColor = IntegerValue(0xFFFFFF, 0, 0xFFFFFF)
     fun defaultBackGroundColor() = Color(defaultBackGroundColor.value())
 
     private val correctAnswerColor = IntegerValue(0xFF0000, 0, 0xFFFFFF)

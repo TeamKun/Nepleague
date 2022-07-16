@@ -139,7 +139,7 @@ class DisplayProvider(private val conf: NepleagueConfig) {
 
                 val box = BoxedArray<ItemFrame>(maxW - minW + 1, maxH - minH + 1)
                 this.forEach { f ->
-                    box[width(f).toIndex(minW), height(f).toIndex(minW)] = f
+                    box[width(f).toIndex(minW), height(f).toIndex(minH)] = f
                 }
 
                 return box

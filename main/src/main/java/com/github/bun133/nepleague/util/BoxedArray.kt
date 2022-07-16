@@ -4,7 +4,20 @@ package com.github.bun133.nepleague.util
  * 長方形状に整列しているArray
  */
 class BoxedArray<T : Any>(val width: Int, val height: Int) {
-    private val array = mutableListOf<MutableList<T?>>()
+    private val array = mutableMapOf<Int, MutableMap<Int, T>>()
+
+    private fun getY(y: Int): MutableMap<Int, T>? {
+        if (checkInside(0, y)) {
+            val e = array[y]
+            if (e == null) {
+                array[y] = mutableMapOf()
+                return array[y]
+            }
+            return e
+        } else {
+            return null
+        }
+    }
 
     /**
      * 左下が(0,0)
@@ -13,14 +26,20 @@ class BoxedArray<T : Any>(val width: Int, val height: Int) {
      */
     operator fun get(x: Int, y: Int): T? {
         if (checkInside(x, y)) {
-            return array.getOrNull(y)?.getOrNull(x)
+            return getY(y)!![x]
         }
         return null
     }
 
     operator fun set(x: Int, y: Int, value: T?) {
         if (checkInside(x, y)) {
-            array.getOrNull(y)?.set(x, value)
+            if (value != null) {
+                getY(y)!![x] = value
+            } else {
+                getY(y)!!.remove(x)
+            }
+        } else {
+            throw IndexOutOfBoundsException("($x,$y)")
         }
     }
 

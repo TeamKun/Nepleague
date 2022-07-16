@@ -4,13 +4,18 @@ import com.github.bun133.nepleague.map.MapDisplay
 import org.bukkit.scoreboard.Team
 import java.awt.Graphics2D
 
-class NepleagueDrawer(private val session: NepleagueSession, private val team: Team, private val display: MapDisplay) {
+class NepleagueDrawer(
+    private val session: NepleagueSession,
+    private val team: Team,
+    private val index: Int,
+    private val display: MapDisplay
+) {
     companion object {
         fun get(session: NepleagueSession, team: Team, index: Int): NepleagueDrawer? {
             val displays = session.plugin.displayProvider.getDisplays(team)
             val display = displays[index]
             if (display != null) {
-                return NepleagueDrawer(session, team, display)
+                return NepleagueDrawer(session, team, index, display)
             }
             return null
         }
@@ -32,9 +37,9 @@ class NepleagueDrawer(private val session: NepleagueSession, private val team: T
             }
             SessionState.OPEN_ANSWER -> {
                 drawBackGround()
-                flushAllWithCharInfo { graphics2D: Graphics2D, nepChar: NepChar?, index: Int, pair: Pair<Int, Int> ->
-                    if (nepChar != null) {
-                        drawNepChar(graphics2D, pair, nepChar)
+                flushWithCharInfo { graphics2D: Graphics2D, nepChar: NepChar? ->
+                    if (nepChar != null && index == this@NepleagueDrawer.index) {
+                        drawNepChar(graphics2D, nepChar)
                         // TODO 背景の色を正誤で変える
                     } else {
                         // DO Nothing
@@ -54,17 +59,14 @@ class NepleagueDrawer(private val session: NepleagueSession, private val team: T
         }
     }
 
-    private fun drawNepChar(g: Graphics2D, left_up: Pair<Int, Int>, nepChar: NepChar) {
-        val centerX = left_up.first + 128 / 2
-
+    private fun drawNepChar(g: Graphics2D, nepChar: NepChar) {
         if (nepChar.isSet()) {
-            // TODO NotDrawing
             g.font = conf.font()
             g.color = conf.fontColor()
             val metrics = g.fontMetrics
             val s = nepChar.char!!.toString()
-            val x = centerX - metrics.stringWidth(s) / 2
-            val y = (128 - metrics.height) / 2 + metrics.ascent
+            val x = (display.pixelWidth() - metrics.stringWidth(s)) / 2
+            val y = (display.pixelHeight() - metrics.height) / 2 + metrics.ascent
             g.drawString(s, x, y)
         } else {
             // DO NOTHING
@@ -74,20 +76,9 @@ class NepleagueDrawer(private val session: NepleagueSession, private val team: T
     /**
      * @param f (Graphics2D,NepChar,Index,Pair(left_up_x,left_up_y))
      */
-    private fun flushAllWithCharInfo(f: (Graphics2D, NepChar?, Int, Pair<Int, Int>) -> Unit) {
-        flushAll { g, index, pair ->
-            f(g, session.getInput(team, index), index, pair)
-        }
-    }
-
-    /**
-     * @param f (Graphics2D,Index,Pair(left_up_x,left_up_y))
-     */
-    private fun flushAll(f: (Graphics2D, Int, Pair<Int, Int>) -> Unit) {
-        display.flush {
-            for (x in 0 until display.pixelWidth() / 128) {
-                f(it, x, Pair(x * 128, 0))
-            }
+    private fun flushWithCharInfo(f: (Graphics2D, NepChar?) -> Unit) {
+        display.flush { g ->
+            f(g, session.getInput(team, index))
         }
     }
 }

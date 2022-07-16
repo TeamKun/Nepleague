@@ -98,21 +98,30 @@ class NepleagueSession(
     }
 
     // <editor-fold desc="drawers">
-    private val drawers = mutableMapOf<Team, NepleagueDrawer>()
+    private val drawers = mutableMapOf<Team, MutableMap<Int, NepleagueDrawer>>()
 
     private fun getDrawers(team: Team) = answer.toCharArray().indices.map { getDrawer(team, it) }
     private fun getDrawer(team: Team, index: Int): NepleagueDrawer? {
         val e = drawers[team]
-        if (e != null) {
-            return e
+        val map = if (e != null) {
+            e
         } else {
-            val displays = plugin.displayProvider.getDisplays(team)
-            val display = displays[index]
-            if (display != null) {
-                drawers[team] = NepleagueDrawer(this, team, display)
-                return drawers[team]!!
-            }
-            return null
+            val mp = mutableMapOf<Int, NepleagueDrawer>()
+            drawers[team] = mp
+            drawers[team]!!
+        }
+
+        val drawer = map[index]
+        if (drawer != null) {
+            return drawer
+        }
+
+        val newDrawer = NepleagueDrawer.get(this, team, index)
+        return if (newDrawer != null) {
+            map[index] = newDrawer
+            newDrawer
+        } else {
+            null
         }
     }
     // </editor-fold>

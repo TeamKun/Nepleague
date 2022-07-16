@@ -4,10 +4,14 @@ import com.github.bun133.nepleague.map.MapDisplay
 import com.github.bun133.nepleague.map.MapSingleDisplay
 import com.github.bun133.nepleague.util.BoxedArray
 import com.github.bun133.nepleague.util.removeAllValue
+import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
+import org.bukkit.World
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.ItemFrame
+import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.scoreboard.Team
 
 class DisplayProvider(private val conf: NepleagueConfig) {
@@ -46,7 +50,7 @@ class DisplayProvider(private val conf: NepleagueConfig) {
             val team = disConfig.teamValue.value()
             disConfig.displayLocations.forEach { displayEntry ->
                 val index = displayEntry.index.value()
-                val display = selectDisplay(displayEntry.displayLocation.value())
+                val display = selectDisplay(displayEntry.displayLocation.value(), true)
                 if (display != null) {
                     setDisplay(team, index, display)
                 }
@@ -56,9 +60,10 @@ class DisplayProvider(private val conf: NepleagueConfig) {
 
     /**
      * 指定LocationからDisplayを選択する
+     * @param overwriteMapStack アイテムフレーム内のマップを新規生成したマップに置き換えるかどうか
      */
-    fun autoSetDisplay(team: Team, index: Int, location: Location): MapDisplay? {
-        val display = selectDisplay(location)
+    fun autoSetDisplay(team: Team, index: Int, location: Location, overwriteMapStack: Boolean = true): MapDisplay? {
+        val display = selectDisplay(location, overwriteMapStack)
         if (display != null) {
             setDisplay(team, index, display)
             // Add to Config
@@ -91,7 +96,7 @@ class DisplayProvider(private val conf: NepleagueConfig) {
         }
     }
 
-    private fun selectDisplay(location: Location): MapDisplay? {
+    private fun selectDisplay(location: Location, overwriteMapStack: Boolean): MapDisplay? {
         fun selectFrameFilledWithMap(location: Location): ItemFrame? {
             val frame = location.toCenterLocation().getNearbyEntitiesByType(ItemFrame::class.java, 0.5 - 0.0625 + 0.1)
             when (frame.size) {
@@ -158,7 +163,18 @@ class DisplayProvider(private val conf: NepleagueConfig) {
             }
         }
 
-        fun List<ItemFrame>.toMapDisplay(): MapDisplay {
+        fun generateMapStack(world: World = Bukkit.getServer().worlds.first()): ItemStack {
+            val map = Bukkit.getServer().createMap(world)
+            val stack = ItemStack(Material.FILLED_MAP)
+            stack.editMeta {
+                it as MapMeta
+                it.mapView = map
+            }
+
+            return stack
+        }
+
+        fun List<ItemFrame>.toMapDisplay(overwriteMapStack: Boolean): MapDisplay {
             if (this.isEmpty()) throw IllegalStateException("There is no ItemFrame")
             fun Int.toIndex(min: Int) = (this - min)
             fun List<ItemFrame>.generateBox(
@@ -175,6 +191,9 @@ class DisplayProvider(private val conf: NepleagueConfig) {
                 val box = BoxedArray<ItemFrame>(maxW - minW + 1, maxH - minH + 1)
                 this.forEach { f ->
                     box[width(f).toIndex(minW), height(f).toIndex(minH)] = f
+                    if (overwriteMapStack) {
+                        f.setItem(generateMapStack())
+                    }
                 }
 
                 return box
@@ -213,6 +232,6 @@ class DisplayProvider(private val conf: NepleagueConfig) {
         val frames = frame.select()
 
         println("found ${frames.size} frames while auto-selecting display")
-        return frames.toMapDisplay()
+        return frames.toMapDisplay(overwriteMapStack)
     }
 }

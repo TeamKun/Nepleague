@@ -10,6 +10,11 @@ import kotlin.reflect.KProperty
 
 class ImageMapRenderer() : MapRenderer() {
     var buf: BufferedImage = BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB)
+        set(value) {
+            field = value
+            println("set")  // TODO Setされない
+        }
+
     override fun render(map: MapView, canvas: MapCanvas, player: Player) {
         repeat(canvas.cursors.size()) {
             canvas.cursors.removeCursor(canvas.cursors.getCursor(0))
@@ -24,6 +29,7 @@ class ImageMapRenderer() : MapRenderer() {
                 val meta = map.stack.itemMeta ?: return null
                 val mapMeta = meta as? MapMeta ?: return null
                 val view = mapMeta.mapView ?: return null
+                view.renderers.filter { it !is ImageMapRenderer }.toList().forEach { view.removeRenderer(it) }
                 val f = view.renderers.filterIsInstance<ImageMapRenderer>()
                 return if (f.isNotEmpty()) {
                     f.first()

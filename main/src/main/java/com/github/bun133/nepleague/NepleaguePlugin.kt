@@ -2,7 +2,6 @@ package com.github.bun133.nepleague
 
 import dev.kotx.flylib.flyLib
 import com.github.bun133.nepleague.command.NepleagueCommand
-import net.kyori.adventure.text.Component
 import org.bukkit.plugin.java.JavaPlugin
 
 
@@ -14,7 +13,7 @@ class NepleaguePlugin : JavaPlugin() {
     fun session() = session
     fun startWith(answer: String, question: String) {
         session = NepleagueSession(this, answer, question, config.team.value().toList())
-        session!!.sendQuestion()
+        session!!.start()
     }
 
     override fun onEnable() {

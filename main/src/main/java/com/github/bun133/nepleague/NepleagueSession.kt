@@ -1,8 +1,8 @@
 package com.github.bun133.nepleague
 
 import com.github.bun133.bukkitfly.component.text
-import com.github.bun133.bukkitfly.server.plugin
-import net.kyori.adventure.text.Component
+import com.github.bun133.tinked.RunnableTask
+import com.github.bun133.tinked.WaitTask
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
@@ -16,6 +16,7 @@ class NepleagueSession(
 ) {
     private val inputs = mutableMapOf<Team, Array<NepChar>>()
 
+    // <editor-fold desc="getinputs">
     private fun getMapEntry(t: Team): Array<NepChar> {
         val e = inputs[t]
         return if (e != null) {
@@ -38,9 +39,10 @@ class NepleagueSession(
         return getMapEntry(team).toMutableList()
     }
 
+    // </editor-fold>
     fun setInput(team: Team, index: Int, input: NepChar): Boolean {
         if (checkIndex(index) || !joinedTeam.contains(team)) {
-            return false
+            return false    // invalid index or not joined team
         }
         val e = inputs[team]
         if (e == null) {
@@ -50,8 +52,10 @@ class NepleagueSession(
             e[index] = input
         }
 
-        if (checkIfFinished(team)) {
-            // TODO Finished Input at This Team
+        if (checkIfFinished()) {
+            // TODO Finished Input at all teams
+
+            onFinished()
         }
 
         return true
@@ -77,9 +81,8 @@ class NepleagueSession(
         }
     }
 
-    private fun checkIfFinished(team: Team): Boolean {
-        val e = inputs[team]
-        return e?.all { it.isSet() } ?: false
+    private fun checkIfFinished(): Boolean {
+        return inputs.values.all { t -> t.all { it.isSet() } }
     }
 
     private fun checkIndex(index: Int) = index !in answer.toCharArray().indices
@@ -89,7 +92,71 @@ class NepleagueSession(
             .flatten()
     }
 
-    fun sendQuestion() {
-        Bukkit.broadcast(text("お題:${question}"))
+    // <editor-fold desc="drawers">
+    private val drawers = mutableMapOf<Team, NepleagueDrawer>()
+
+    private fun getDrawer(team: Team): NepleagueDrawer? {
+        val e = drawers[team]
+        if (e != null) {
+            return e
+        } else {
+            val display = plugin.displayProvider.getDisplay(team)
+            if (display != null) {
+                drawers[team] = NepleagueDrawer(this, team, display)
+                return drawers[team]!!
+            }
+            return null
+        }
     }
+    // </editor-fold>
+
+    private fun broadCastState(state: SessionState) {
+        joinedTeam.mapNotNull { getDrawer(it) }.forEach { it.draw(state) }
+    }
+
+    fun start() {
+        Bukkit.broadcast(text("お題:${question}"))
+        broadCastState(SessionState.WAITING_INPUT)
+    }
+
+    private fun onFinished() {
+        Bukkit.broadcast(text("すべてのチームが回答を入力したので、結果発表を行います", NamedTextColor.GREEN))
+        WaitTask<Unit>(plugin.config.answerAnnounceDelay.value().toLong(), plugin).apply(RunnableTask {
+            // Delayed task
+            Bukkit.broadcast(text("正解: $answer", NamedTextColor.GREEN))
+            Bukkit.broadcast(text(""))
+            val result = judgeInput(answer, inputs.toList())
+            broadCastResults(result)
+            broadCastState(SessionState.OPEN_ANSWER)
+        }).run(Unit)
+    }
+
+    private fun broadCastResults(r: List<Pair<Team, Pair<List<NepleagueResult>?, NepleagueResult>>>) {
+        fun broadCastResult(r: Pair<Team, Pair<List<NepleagueResult>?, NepleagueResult>>) {
+            val color = when (r.second.second) {
+                NepleagueResult.Correct -> NamedTextColor.RED
+                NepleagueResult.Wrong -> NamedTextColor.BLUE
+                NepleagueResult.NoInput -> NamedTextColor.GRAY
+            }
+
+            val wrongCount = r.second.first?.count { it == NepleagueResult.Wrong } ?: 0
+
+            Bukkit.broadcast(text("[${r.second.second.displayString}] チーム${r.first.name} ${wrongCount}ミス", color))
+        }
+
+        val sorted = r.sortedBy { it.second.second.ordinal }
+        sorted.forEach {
+            broadCastResult(it)
+        }
+    }
+
+    init {
+        broadCastState(SessionState.BEFORE_START)
+    }
+}
+
+enum class SessionState {
+    BEFORE_START,   // 開始前
+    WAITING_INPUT,  // 入力中
+    OPEN_ANSWER,    // 答え合わせの時間
 }

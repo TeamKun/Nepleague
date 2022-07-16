@@ -18,7 +18,7 @@ class DisplayProvider(private val conf: NepleagueConfig) {
      * Set [display] to [team]
      * if the [display] is already owned by other team, it will be transferred from the other team.
      */
-    fun setDisplay(team: Team, display: MapDisplay) {
+    private fun setDisplay(team: Team, display: MapDisplay) {
         if (displays.containsValue(display)) {
             val key = displays.filter { it.value == display }.keys.first()
             if (key != team) {

@@ -115,7 +115,19 @@
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+                <excludes>
+                    <exclude>**/*.ttf</exclude>
+                </excludes>
                 <filtering>true</filtering>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*.ttf</include>
+                </includes>
             </resource>
         </resources>
     </build>
@@ -171,6 +183,12 @@
             <groupId>com.github.Bun133</groupId>
             <artifactId>BukkitFly</artifactId>
             <version>1a9ead7c9f</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.Bun133</groupId>
+            <artifactId>Tinked</artifactId>
+            <version>240637aa1d</version>
         </dependency>
     </dependencies>
 </project>

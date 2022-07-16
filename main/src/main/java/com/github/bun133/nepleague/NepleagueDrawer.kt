@@ -69,6 +69,7 @@ class NepleagueDrawer(private val session: NepleagueSession, private val team: T
         val centerX = left_up.first + 128 / 2
 
         if (nepChar.isSet()) {
+            // TODO NotDrawing
             g.font = conf.font()
             val metrics = g.fontMetrics
             val s = nepChar.char!!.toString()

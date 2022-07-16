@@ -12,7 +12,6 @@ class ImageMapRenderer() : MapRenderer() {
     var buf: BufferedImage = BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB)
         set(value) {
             field = value
-            println("set")  // TODO Setされない
         }
 
     override fun render(map: MapView, canvas: MapCanvas, player: Player) {

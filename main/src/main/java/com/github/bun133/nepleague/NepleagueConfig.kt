@@ -20,7 +20,10 @@ class NepleagueConfig(plugin: NepleaguePlugin) : BaseConfig(plugin) {
     val drawerConfig = DrawerConfig(plugin)
 }
 
-class DrawerConfig(val plugin: Plugin) : BaseConfig(plugin) {
+class DrawerConfig(
+    @Transient
+    val plugin: Plugin
+) : BaseConfig(plugin) {
     val fontSize = IntegerValue(10, 1, 100)
     private val fontColor = IntegerValue(0x000000, 0, 0xFFFFFF)
     fun fontColor() = Color(fontColor.value())

@@ -3,6 +3,7 @@ package com.github.bun133.nepleague
 import com.github.bun133.nepleague.map.MapDisplay
 import com.github.bun133.nepleague.map.MapSingleDisplay
 import com.github.bun133.nepleague.util.BoxedArray
+import com.github.bun133.nepleague.util.removeAllValue
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.BlockFace
@@ -10,33 +11,45 @@ import org.bukkit.entity.ItemFrame
 import org.bukkit.scoreboard.Team
 
 class DisplayProvider(private val conf: NepleagueConfig) {
-    private val displays = mutableMapOf<Team, MapDisplay>()
+    private val displays = mutableMapOf<Team, MutableMap<Int, MapDisplay>>()
 
-    fun getDisplay(team: Team) = displays[team]
+    fun getDisplays(team: Team): MutableMap<Int, MapDisplay> {
+        val e = displays[team]
+        return if (e == null) {
+            val newMap = mutableMapOf<Int, MapDisplay>()
+            displays[team] = newMap
+            newMap
+        } else {
+            e
+        }
+    }
 
     /**
      * Set [display] to [team]
      * if the [display] is already owned by other team, it will be transferred from the other team.
      */
-    private fun setDisplay(team: Team, display: MapDisplay) {
-        if (displays.containsValue(display)) {
-            val key = displays.filter { it.value == display }.keys.first()
-            if (key != team) {
-                displays.remove(key)
-                displays[team] = display
-            } else {
-                // do nothing
+    private fun setDisplay(team: Team, index: Int, display: MapDisplay) {
+        val others = displays.toList().filter { it.first != team }
+        val en = others.map { it.first to it.second.values }.filter { it.second.contains(display) }
+        if (en.isNotEmpty()) {
+            // 他のチームのディスプレイだったけどこのチームに移動します
+            en.forEach { (owningTeam, _) ->
+                getDisplays(owningTeam).removeAllValue(display)
             }
-        } else {
-            displays[team] = display
         }
+        // ディスプレイ置き換えてても知りません
+        getDisplays(team)[index] = display
     }
 
     fun loadFromConfig() {
-        conf.displays.value().forEach { (team, location) ->
-            val display = selectDisplay(location)
-            if (display != null) {
-                setDisplay(team, display)
+        conf.displays.forEach { disConfig ->
+            val team = disConfig.teamValue.value()
+            disConfig.displayLocations.forEach { displayEntry ->
+                val index = displayEntry.index.value()
+                val display = selectDisplay(displayEntry.displayLocation.value())
+                if (display != null) {
+                    setDisplay(team, index, display)
+                }
             }
         }
     }
@@ -44,16 +57,38 @@ class DisplayProvider(private val conf: NepleagueConfig) {
     /**
      * 指定LocationからDisplayを選択する
      */
-    fun autoSetDisplay(team: Team, location: Location): MapDisplay? {
+    fun autoSetDisplay(team: Team, index: Int, location: Location): MapDisplay? {
         val display = selectDisplay(location)
         if (display != null) {
-            setDisplay(team, display)
+            setDisplay(team, index, display)
             // Add to Config
-            val l = conf.displays.value()
-            l[team] = location
-            conf.displays.value(l)
+            saveToConfig(team, index, location)
         }
         return display
+    }
+
+    private fun saveToConfig(team: Team, index: Int, location: Location) {
+        val e = conf.displays.find { it.teamValue.value() == team }
+        if (e != null) {
+            addToConfig(e, index, location)
+        } else {
+            val ne = DisplayConfig()
+            ne.teamValue.value(team)
+            conf.displays.add(ne)
+            addToConfig(ne, index, location)
+        }
+    }
+
+    private fun addToConfig(e: DisplayConfig, index: Int, location: Location) {
+        val de = e.displayLocations.find { it.index.value() == index }
+        if (de != null) {
+            de.displayLocation.value(location)
+        } else {
+            val ne = DisplayEntry()
+            e.displayLocations.add(ne)
+            ne.index.value(index)
+            ne.displayLocation.value(location)
+        }
     }
 
     private fun selectDisplay(location: Location): MapDisplay? {

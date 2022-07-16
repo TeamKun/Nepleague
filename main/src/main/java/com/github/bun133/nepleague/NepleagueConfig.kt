@@ -1,21 +1,21 @@
 package com.github.bun133.nepleague
 
 import net.kunmc.lab.configlib.BaseConfig
-import net.kunmc.lab.configlib.value.DoubleValue
 import net.kunmc.lab.configlib.value.IntegerValue
+import net.kunmc.lab.configlib.value.LocationValue
 import net.kunmc.lab.configlib.value.StringValue
+import net.kunmc.lab.configlib.value.TeamValue
 import net.kunmc.lab.configlib.value.collection.TeamSetValue
 import net.kunmc.lab.configlib.value.map.Team2LocationMapValue
 import org.bukkit.plugin.Plugin
 import java.awt.Color
 import java.awt.Font
-import java.io.File
 
 class NepleagueConfig(plugin: NepleaguePlugin) : BaseConfig(plugin) {
     val answerAnnounceDelay = IntegerValue(20 * 3, 0, Integer.MAX_VALUE)
     val team = TeamSetValue()
 
-    val displays = Team2LocationMapValue()
+    val displays: MutableList<DisplayConfig> = mutableListOf()
 
     val drawerConfig = DrawerConfig(plugin)
 }
@@ -45,4 +45,14 @@ class DrawerConfig(
 
     private val wrongAnswerColor = IntegerValue(0x0000FF, 0, 0xFFFFFF)
     fun wrongAnswerColor() = Color(wrongAnswerColor.value())
+}
+
+class DisplayConfig() {
+    val teamValue: TeamValue = TeamValue()
+    val displayLocations: MutableList<DisplayEntry> = mutableListOf()
+}
+
+class DisplayEntry() {
+    val displayLocation = LocationValue()
+    val index = IntegerValue(0, 0, Integer.MAX_VALUE)
 }

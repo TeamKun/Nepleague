@@ -10,9 +10,6 @@ import kotlin.reflect.KProperty
 
 class ImageMapRenderer() : MapRenderer() {
     var buf: BufferedImage = BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB)
-        set(value) {
-            field = value
-        }
 
     override fun render(map: MapView, canvas: MapCanvas, player: Player) {
         repeat(canvas.cursors.size()) {

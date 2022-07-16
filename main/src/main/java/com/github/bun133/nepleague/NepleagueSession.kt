@@ -82,7 +82,12 @@ class NepleagueSession(
     }
 
     private fun checkIfFinished(): Boolean {
-        return inputs.values.all { t -> t.all { it.isSet() } }
+        val e = joinedTeam.map { inputs[it] }
+        return if (e.any { it == null }) {
+            false
+        } else {
+            e.all { t -> t?.all { it.isSet() } ?: false }
+        }
     }
 
     private fun checkIndex(index: Int) = index !in answer.toCharArray().indices
@@ -95,12 +100,14 @@ class NepleagueSession(
     // <editor-fold desc="drawers">
     private val drawers = mutableMapOf<Team, NepleagueDrawer>()
 
-    private fun getDrawer(team: Team): NepleagueDrawer? {
+    private fun getDrawers(team: Team) = answer.toCharArray().indices.map { getDrawer(team, it) }
+    private fun getDrawer(team: Team, index: Int): NepleagueDrawer? {
         val e = drawers[team]
         if (e != null) {
             return e
         } else {
-            val display = plugin.displayProvider.getDisplay(team)
+            val displays = plugin.displayProvider.getDisplays(team)
+            val display = displays[index]
             if (display != null) {
                 drawers[team] = NepleagueDrawer(this, team, display)
                 return drawers[team]!!
@@ -111,7 +118,7 @@ class NepleagueSession(
     // </editor-fold>
 
     private fun broadCastState(state: SessionState) {
-        joinedTeam.mapNotNull { getDrawer(it) }.forEach { it.draw(state) }
+        joinedTeam.map { getDrawers(it) }.flatten().filterNotNull().forEach { it.draw(state) }
     }
 
     fun start() {

@@ -5,20 +5,14 @@ import org.bukkit.scoreboard.Team
 import java.awt.Graphics2D
 
 class NepleagueDrawer(private val session: NepleagueSession, private val team: Team, private val display: MapDisplay) {
-    private constructor(session: NepleagueSession, team: Team) : this(
-        session,
-        team,
-        session.plugin.displayProvider.getDisplay(team)!!
-    )
-
     companion object {
-        fun get(session: NepleagueSession, team: Team): NepleagueDrawer? {
-            val display = session.plugin.displayProvider.getDisplay(team)
-            return if (display != null) {
-                NepleagueDrawer(session, team, display)
-            } else {
-                null
+        fun get(session: NepleagueSession, team: Team, index: Int): NepleagueDrawer? {
+            val displays = session.plugin.displayProvider.getDisplays(team)
+            val display = displays[index]
+            if (display != null) {
+                return NepleagueDrawer(session, team, display)
             }
+            return null
         }
     }
 
@@ -40,11 +34,6 @@ class NepleagueDrawer(private val session: NepleagueSession, private val team: T
                 drawBackGround()
                 flushAllWithCharInfo { graphics2D: Graphics2D, nepChar: NepChar?, index: Int, pair: Pair<Int, Int> ->
                     if (nepChar != null) {
-                        val color = conf.fontColor()
-                        val font = conf.font()
-                        graphics2D.color = color
-                        graphics2D.font = font
-
                         drawNepChar(graphics2D, pair, nepChar)
                         // TODO 背景の色を正誤で変える
                     } else {
@@ -71,11 +60,11 @@ class NepleagueDrawer(private val session: NepleagueSession, private val team: T
         if (nepChar.isSet()) {
             // TODO NotDrawing
             g.font = conf.font()
+            g.color = conf.fontColor()
             val metrics = g.fontMetrics
             val s = nepChar.char!!.toString()
             val x = centerX - metrics.stringWidth(s) / 2
             val y = (128 - metrics.height) / 2 + metrics.ascent
-            g.color = conf.fontColor()
             g.drawString(s, x, y)
         } else {
             // DO NOTHING

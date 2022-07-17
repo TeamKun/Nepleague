@@ -174,7 +174,6 @@ class DisplayProvider(private val conf: NepleagueConfig) {
             return stack
         }
 
-        // TODO 垂直方向や、天井にくっつけたとたんおかしくなる
         fun List<ItemFrame>.toMapDisplay(overwriteMapStack: Boolean): MapDisplay {
             if (this.isEmpty()) throw IllegalStateException("There is no ItemFrame")
             fun Int.toIndex(min: Int) = (this - min)
@@ -201,21 +200,42 @@ class DisplayProvider(private val conf: NepleagueConfig) {
             }
 
             val stackBox = when (this.first().attachedFace) {
-                BlockFace.NORTH, BlockFace.SOUTH -> {
+                BlockFace.NORTH -> {
                     this.generateBox({
                         it.location.blockX
                     }, {
-                        it.location.blockY
+                        -it.location.blockY
                     })
                 }
-                BlockFace.EAST, BlockFace.WEST -> {
+                BlockFace.SOUTH -> {
+                    this.generateBox({
+                        -it.location.blockX
+                    }, {
+                        -it.location.blockY
+                    })
+                }
+                BlockFace.EAST -> {
                     this.generateBox({
                         it.location.blockZ
                     }, {
-                        it.location.blockY
+                        -it.location.blockY
                     })
                 }
-                BlockFace.UP, BlockFace.DOWN -> {
+                BlockFace.WEST -> {
+                    this.generateBox({
+                        -it.location.blockZ
+                    }, {
+                        -it.location.blockY
+                    })
+                }
+                BlockFace.UP -> {
+                    this.generateBox({
+                        it.location.blockX
+                    }, {
+                        it.location.blockZ
+                    })
+                }
+                BlockFace.DOWN -> {
                     this.generateBox({
                         it.location.blockX
                     }, {

@@ -162,6 +162,10 @@ class NepleagueSession(
     init {
         broadCastState(SessionState.BEFORE_START)
     }
+
+    fun destroy() {
+        broadCastState(SessionState.BEFORE_START)   // まっさらに戻す
+    }
 }
 
 enum class SessionState {

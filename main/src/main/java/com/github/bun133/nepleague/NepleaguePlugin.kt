@@ -12,6 +12,9 @@ class NepleaguePlugin : JavaPlugin() {
 
     fun session() = session
     fun startWith(answer: String, question: String) {
+        if (session != null) {
+            session!!.destroy()
+        }
         session = NepleagueSession(this, answer, question, config.team.value().toList())
         session!!.start()
     }

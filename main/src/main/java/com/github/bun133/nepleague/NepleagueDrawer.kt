@@ -33,9 +33,19 @@ class NepleagueDrawer(
                 drawBackGround()
             }
             SessionState.WAITING_INPUT -> {
-                // TODO 入力してるかしてないかで色を変える
+                // TODO 入力してるかしてないかで見た目を変える
                 // 全部背景色にする
                 drawBackGround()
+                flushWithCharInfo { graphics2D, nepChar ->
+                    println("flushWithCharInfo")
+                    if (nepChar != null && nepChar.isSet()) {
+                        // 入力済み
+                        drawNepChar(graphics2D, NepChar('済'), conf.fontColor())
+                    } else {
+                        // 未入力
+                        drawNepChar(graphics2D, NepChar('未'), conf.fontColor())
+                    }
+                }
             }
             SessionState.OPEN_ANSWER -> {
                 flushWithResultInfo { graphics2D, nepChar, nepleagueResult ->
@@ -60,10 +70,10 @@ class NepleagueDrawer(
         }
     }
 
-    private fun drawNepChar(g: Graphics2D, nepChar: NepChar) {
+    private fun drawNepChar(g: Graphics2D, nepChar: NepChar, color: Color = conf.flippedFontColor()) {
         if (nepChar.isSet()) {
             g.font = conf.font()
-            g.color = conf.fontColor()
+            g.color = color
             val metrics = g.fontMetrics
             val s = nepChar.char!!.toString()
             val x = (display.pixelWidth() - metrics.stringWidth(s)) / 2
@@ -75,7 +85,7 @@ class NepleagueDrawer(
     }
 
     /**
-     * @param f (Graphics2D,NepChar,Index,Pair(left_up_x,left_up_y))
+     * @param f (Graphics2D,NepChar
      */
     private fun flushWithCharInfo(f: (Graphics2D, NepChar?) -> Unit) {
         display.flush { g ->

@@ -53,8 +53,6 @@ class NepleagueSession(
         }
 
         if (checkIfFinished()) {
-            // TODO Finished Input at all teams
-
             onFinished()
         }
 

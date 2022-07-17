@@ -11,14 +11,6 @@ class NepChar(
 
     fun isSet() = internalChar != null
 
-    fun prettyPrint(): Char {
-        return if (isSet()) {
-            internalChar!!
-        } else {
-            ' ' // TODO Make this configurable
-        }
-    }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

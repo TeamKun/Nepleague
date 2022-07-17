@@ -33,7 +33,7 @@ class NepleagueDrawer(
                 drawBackGround()
             }
             SessionState.WAITING_INPUT -> {
-                // TODO もっとしゃれおつに
+                // TODO 入力してるかしてないかで色を変える
                 // 全部背景色にする
                 drawBackGround()
             }

@@ -7,10 +7,6 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 
 class RemoteInput(plugin: NepleaguePlugin, private val player: Player, val f: (Player, String) -> Boolean) : Listener {
-    init {
-        plugin.server.pluginManager.registerEvents(this, plugin)
-    }
-
     private var isResolved = false
 
     @EventHandler
@@ -20,10 +16,21 @@ class RemoteInput(plugin: NepleaguePlugin, private val player: Player, val f: (P
             val comp = e.originalMessage() as? TextComponent ?: return
             val text = comp.content()
             val b = f(e.player, text)
+            e.isCancelled = true
             if (b) {
-                e.isCancelled = true
                 isResolved = true
             }
         }
     }
+
+    init {
+        plugin.server.pluginManager.registerEvents(this, plugin)
+        val e = remoteInputs[player]
+        if (e != null) {
+            e.isResolved = true // 前の奴は残らないようにする
+        }
+        remoteInputs[player] = this
+    }
 }
+
+private val remoteInputs = mutableMapOf<Player, RemoteInput>()

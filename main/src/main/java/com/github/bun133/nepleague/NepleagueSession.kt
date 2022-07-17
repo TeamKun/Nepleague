@@ -67,17 +67,24 @@ class NepleagueSession(
             val team = Bukkit.getScoreboardManager().mainScoreboard.getEntryTeam(player.name)
             if (team == null) {
                 player.sendMessage(text("参加しているチームが見つかりませんでした", NamedTextColor.RED))
-                return@RemoteInput false
+                return@RemoteInput true
             } else {
-                val b = setInput(team, index, NepChar(string[0]))
-                if (b) {
-                    player.sendMessage(text("入力しました", NamedTextColor.GREEN))
+                val session = plugin.session()
+                if (session != null && !session.isFinished) {
+                    val b = session.setInput(team, index, NepChar(string[0]))
+                    if (b) {
+                        player.sendMessage(text("入力しました", NamedTextColor.GREEN))
+                    } else {
+                        player.sendMessage(text("入力できませんでした", NamedTextColor.RED))
+                    }
+                    return@RemoteInput true
                 } else {
-                    player.sendMessage(text("入力できませんでした", NamedTextColor.RED))
+                    player.sendMessage(text("今は回答時間ではありません", NamedTextColor.RED))
+                    return@RemoteInput true
                 }
-                return@RemoteInput b
             }
         } else {
+            player.sendMessage(text("1文字で入力してください!(このまま入力できます)", NamedTextColor.RED))
             return@RemoteInput false
         }
     }
@@ -140,7 +147,9 @@ class NepleagueSession(
         broadCastState(SessionState.WAITING_INPUT)
     }
 
+    private var isFinished = false
     private fun onFinished() {
+        isFinished = true
         Bukkit.broadcast(text("すべてのチームが回答を入力したので、結果発表を行います", NamedTextColor.GREEN))
         WaitTask<Unit>(plugin.config.answerAnnounceDelay.value().toLong(), plugin).apply(RunnableTask {
             // Delayed task

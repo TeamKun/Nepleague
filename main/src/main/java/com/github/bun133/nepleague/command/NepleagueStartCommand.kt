@@ -9,9 +9,8 @@ class NepleagueStartCommand : Command("start") {
     init {
         description("Nepleague Start Command")
         usage {
-            // TODO ひらがな入らない。なぜ
-            stringArgument("Answer", StringArgument.Type.WORD)
-            stringArgument("Question", StringArgument.Type.WORD)
+            stringArgument("Answer", StringArgument.Type.PHRASE_QUOTED)
+            stringArgument("Question", StringArgument.Type.PHRASE_QUOTED)
 
             executes {
                 val answer = typedArgs[0] as String

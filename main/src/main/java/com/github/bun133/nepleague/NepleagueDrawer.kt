@@ -1,7 +1,9 @@
 package com.github.bun133.nepleague
 
+import com.github.bun133.bukkitfly.component.toAWTColor
 import com.github.bun133.nepleague.map.MapDisplay
 import org.bukkit.scoreboard.Team
+import java.awt.Color
 import java.awt.Graphics2D
 
 class NepleagueDrawer(
@@ -36,11 +38,10 @@ class NepleagueDrawer(
                 drawBackGround()
             }
             SessionState.OPEN_ANSWER -> {
-                drawBackGround()
-                flushWithCharInfo { graphics2D: Graphics2D, nepChar: NepChar? ->
+                flushWithResultInfo { graphics2D, nepChar, nepleagueResult ->
+                    drawBackGround(nepleagueResult.toColor().toAWTColor())
                     if (nepChar != null && index == this@NepleagueDrawer.index) {
                         drawNepChar(graphics2D, nepChar)
-                        // TODO 背景の色を正誤で変える
                     } else {
                         // DO Nothing
                         // 未入力のままここまできちゃったんだね...
@@ -50,9 +51,9 @@ class NepleagueDrawer(
         }
     }
 
-    private fun drawBackGround() {
+    private fun drawBackGround(color: Color = conf.defaultBackGroundColor()) {
         display.flush {
-            it.color = conf.defaultBackGroundColor()
+            it.color = color
             val w = display.pixelWidth()
             val h = display.pixelHeight()
             it.fillRect(0, 0, w, h)
@@ -79,6 +80,12 @@ class NepleagueDrawer(
     private fun flushWithCharInfo(f: (Graphics2D, NepChar?) -> Unit) {
         display.flush { g ->
             f(g, session.getInput(team, index))
+        }
+    }
+
+    private fun flushWithResultInfo(f: (Graphics2D, NepChar?, NepleagueResult) -> Unit) {
+        flushWithCharInfo { g, nepChar ->
+            f(g, nepChar, judgeInput(session.answer, nepChar, index))
         }
     }
 }

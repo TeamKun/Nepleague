@@ -1,29 +1,47 @@
 package com.github.bun133.nepleague
 
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.scoreboard.Team
 
 enum class NepleagueResult(val displayString: String) {
     Correct("正解"),
     Wrong("不正解"),
-    NoInput("未入力")
+    NoInput("未入力"),
+    Ignored("") // 空文字列のまま行きます(仕様上このEnumがResultになることはないはずなので)
+}
+
+fun NepleagueResult.toColor(): NamedTextColor {
+    return when (this) {
+        NepleagueResult.Correct -> NamedTextColor.DARK_RED
+        NepleagueResult.Wrong -> NamedTextColor.BLUE
+        NepleagueResult.NoInput -> NamedTextColor.GRAY
+        NepleagueResult.Ignored -> NamedTextColor.LIGHT_PURPLE
+    }
+}
+
+fun judgeInput(answer: String, input: NepChar?, index: Int): NepleagueResult {
+    if (input == null) {
+        return NepleagueResult.NoInput
+    }
+    val char = input.char
+    return if (char != null) {
+        val ans = answer.getOrNull(index) ?: return NepleagueResult.Ignored // 答えよりも入力が多い場合は無視する
+        if (char == ans) {
+            NepleagueResult.Correct
+        } else {
+            NepleagueResult.Wrong
+        }
+    } else {
+        NepleagueResult.NoInput
+    }
 }
 
 fun judgeInput(answer: String, input: Array<NepChar>): List<NepleagueResult>? {
-    if (answer.length != input.size) {
-        return null
+    return if (answer.length != input.size) {
+        null
     } else {
-        return input.mapIndexed { index, nepChar ->
-            val c = nepChar.char
-            if (c != null) {
-                val b = answer[index] == c
-                if (b) {
-                    NepleagueResult.Correct
-                } else {
-                    NepleagueResult.Wrong
-                }
-            } else {
-                NepleagueResult.NoInput
-            }
+        input.mapIndexed { index, nepChar ->
+            judgeInput(answer, nepChar, index)
         }
     }
 }

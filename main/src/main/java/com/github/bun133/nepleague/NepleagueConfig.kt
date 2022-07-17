@@ -24,7 +24,7 @@ class DrawerConfig(
     @Transient
     val plugin: Plugin
 ) : BaseConfig(plugin) {
-    val fontSize = IntegerValue(10, 1, 100)
+    val fontSize = IntegerValue(200, 1, 10000)
     private val fontColor = IntegerValue(0x000000, 0, 0xFFFFFF)
     fun fontColor() = Color(fontColor.value())
 

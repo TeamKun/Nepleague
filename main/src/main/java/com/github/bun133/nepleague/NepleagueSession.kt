@@ -149,12 +149,7 @@ class NepleagueSession(
 
     private fun broadCastResults(r: List<Pair<Team, Pair<List<NepleagueResult>?, NepleagueResult>>>) {
         fun broadCastResult(r: Pair<Team, Pair<List<NepleagueResult>?, NepleagueResult>>) {
-            val color = when (r.second.second) {
-                NepleagueResult.Correct -> NamedTextColor.RED
-                NepleagueResult.Wrong -> NamedTextColor.BLUE
-                NepleagueResult.NoInput -> NamedTextColor.GRAY
-            }
-
+            val color = r.second.second.toColor()
             val wrongCount = r.second.first?.count { it == NepleagueResult.Wrong } ?: 0
 
             Bukkit.broadcast(text("[${r.second.second.displayString}] チーム${r.first.name} ${wrongCount}ミス", color))

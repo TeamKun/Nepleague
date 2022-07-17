@@ -174,6 +174,7 @@ class DisplayProvider(private val conf: NepleagueConfig) {
             return stack
         }
 
+        // TODO 垂直方向や、天井にくっつけたとたんおかしくなる
         fun List<ItemFrame>.toMapDisplay(overwriteMapStack: Boolean): MapDisplay {
             if (this.isEmpty()) throw IllegalStateException("There is no ItemFrame")
             fun Int.toIndex(min: Int) = (this - min)

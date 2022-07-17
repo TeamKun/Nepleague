@@ -41,6 +41,7 @@ class NepleagueSession(
 
     // </editor-fold>
     fun setInput(team: Team, index: Int, input: NepChar): Boolean {
+        if (isDestroyed) return true
         if (checkIndex(index) || !joinedTeam.contains(team)) {
             return false    // invalid index or not joined team
         }
@@ -51,6 +52,8 @@ class NepleagueSession(
         } else {
             e[index] = input
         }
+
+        broadCastState(SessionState.WAITING_INPUT, team, index) // 再描画
 
         if (checkIfFinished()) {
             onFinished()
@@ -128,6 +131,10 @@ class NepleagueSession(
         joinedTeam.map { getDrawers(it) }.flatten().filterNotNull().forEach { it.draw(state) }
     }
 
+    private fun broadCastState(state: SessionState, team: Team, index: Int) {
+        getDrawer(team, index)?.draw(state)
+    }
+
     fun start() {
         Bukkit.broadcast(text("お題:${question}"))
         broadCastState(SessionState.WAITING_INPUT)
@@ -163,7 +170,12 @@ class NepleagueSession(
         broadCastState(SessionState.BEFORE_START)
     }
 
+    private var isDestroyed = false
     fun destroy() {
+        if (isDestroyed) {
+            return
+        }
+        isDestroyed = true
         broadCastState(SessionState.BEFORE_START)   // まっさらに戻す
     }
 }

@@ -9,6 +9,7 @@ class NepleagueStartCommand : Command("start") {
     init {
         description("Nepleague Start Command")
         usage {
+            // TODO ひらがな入らない。なぜ
             stringArgument("Answer", StringArgument.Type.WORD)
             stringArgument("Question", StringArgument.Type.WORD)
 
@@ -16,7 +17,6 @@ class NepleagueStartCommand : Command("start") {
                 val answer = typedArgs[0] as String
                 val question = typedArgs[1] as String
 
-                // TODO : Start Nepleague
                 (plugin as NepleaguePlugin).startWith(answer, question)
 
                 success("答え: $answer でネプリーグを開始しました")

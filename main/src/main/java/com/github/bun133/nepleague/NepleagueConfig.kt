@@ -25,7 +25,7 @@ class DrawerConfig(
     val plugin: Plugin
 ) : BaseConfig(plugin) {
     val fontSize = IntegerValue(200, 1, 10000)
-    private val fontColor = IntegerValue(0x000000, 0, 0xFFFFFF)
+    private val fontColor = IntegerValue(0xFFFFFF, 0, 0xFFFFFF)
     fun fontColor() = Color(fontColor.value())
 
     private val fontFileName = StringValue("MPLUSRounded1c-Light.ttf")

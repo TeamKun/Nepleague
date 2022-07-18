@@ -26,7 +26,7 @@ class NepleagueDrawer(
 
     private val conf = session.plugin.config.drawerConfig
     fun draw(state: SessionState) {
-        println("Drawing:${state}")
+//        println("Drawing:${state}")
         when (state) {
             SessionState.BEFORE_START -> {
                 // 全部背景色にする
@@ -37,7 +37,7 @@ class NepleagueDrawer(
                 // 全部背景色にする
                 drawBackGround()
                 flushWithCharInfo { graphics2D, nepChar ->
-                    println("flushWithCharInfo")
+//                    println("flushWithCharInfo")
                     if (nepChar != null && nepChar.isSet()) {
                         // 入力済み
                         drawNepChar(graphics2D, NepChar('済'), conf.fontColor())

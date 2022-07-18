@@ -6,7 +6,6 @@ import net.kunmc.lab.configlib.value.LocationValue
 import net.kunmc.lab.configlib.value.StringValue
 import net.kunmc.lab.configlib.value.TeamValue
 import net.kunmc.lab.configlib.value.collection.TeamSetValue
-import net.kunmc.lab.configlib.value.map.Team2LocationMapValue
 import org.bukkit.plugin.Plugin
 import java.awt.Color
 import java.awt.Font
@@ -35,12 +34,21 @@ class DrawerConfig(
     fun flippedFontColor() = Color(fontColorFlipped.value())
 
     private val fontFileName = StringValue("MPLUSRounded1c-Light.ttf")
+
+    @Transient
+    private var cachedFontFileName = ""
+
+    @Transient
+    private var cachedFont: Font? = null
     fun font(): Font {
-        // TODO Performance issue
-        return Font.createFont(
-            Font.TRUETYPE_FONT,
-            plugin.getResource(fontFileName.value())
-        ).deriveFont(fontSize.value().toFloat())
+        if (cachedFontFileName.isEmpty() || cachedFontFileName != fontFileName.value()) {
+            cachedFontFileName = fontFileName.value()
+            cachedFont = Font.createFont(
+                Font.TRUETYPE_FONT,
+                plugin.getResource(fontFileName.value())
+            ).deriveFont(fontSize.value().toFloat())
+        }
+        return cachedFont!!
     }
 
     private val defaultBackGroundColor = IntegerValue(0xFFFFFF, 0, 0xFFFFFF)

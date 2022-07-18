@@ -5,19 +5,20 @@ import com.github.bun133.nepleague.NepleaguePlugin
 import dev.kotx.flylib.command.Command
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
+import org.bukkit.entity.Entity
+import org.bukkit.entity.Player
 
 class NepleagueRemoteInputCommand : Command("rinput") {
     init {
         description("Input command for remove inputting")
         usage {
-            stringArgument("Player name", {
-                suggestAll(Bukkit.getServer().onlinePlayers.map { it.name })
-            })
+            entityArgument("Player", enableEntities = false)
             integerArgument("Index")
 
             executes {
-                val pName = typedArgs[0] as String
-                val p = Bukkit.getServer().onlinePlayers.find { it.name == pName }
+                @Suppress("UNCHECKED_CAST")
+                val ps = typedArgs[0] as List<Entity>
+                val p = ps.filterIsInstance(Player::class.java).firstOrNull()
                 val index = typedArgs[1] as Int
 
                 if (p != null) {

@@ -11,7 +11,6 @@ import org.bukkit.scoreboard.Team
 class NepleagueSession(
     val plugin: NepleaguePlugin,
     val answer: String,
-    val question: String,
     val joinedTeam: List<Team>
 ) {
     private val inputs = mutableMapOf<Team, Array<NepChar>>()
@@ -143,7 +142,7 @@ class NepleagueSession(
     }
 
     fun start() {
-        Bukkit.broadcast(text("お題:${question}"))
+//        Bukkit.broadcast(text("お題:${question}"))
         broadCastState(SessionState.WAITING_INPUT)
     }
 

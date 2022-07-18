@@ -3,6 +3,7 @@ package com.github.bun133.nepleague.command
 import com.github.bun133.nepleague.NepChar
 import com.github.bun133.nepleague.NepleaguePlugin
 import dev.kotx.flylib.command.Command
+import dev.kotx.flylib.command.arguments.StringArgument
 import org.bukkit.Bukkit
 
 class NepleagueInputCommand : Command("input") {
@@ -10,7 +11,7 @@ class NepleagueInputCommand : Command("input") {
         description("Input Command of Nepleague Game")
         usage {
             integerArgument("Index(0 indexed)")
-            stringArgument("Input")
+            stringArgument("Input",StringArgument.Type.PHRASE)
             executes {
                 val p = player
                 if (p != null) {

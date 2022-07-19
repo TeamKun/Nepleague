@@ -11,7 +11,8 @@ import org.bukkit.scoreboard.Team
 class NepleagueSession(
     val plugin: NepleaguePlugin,
     val answer: String,
-    val joinedTeam: List<Team>
+    val joinedTeam: List<Team>,
+    private val checker: StringChecker
 ) {
     private val inputs = mutableMapOf<Team, Array<NepChar>>()
 
@@ -44,6 +45,9 @@ class NepleagueSession(
         if (checkIndex(index) || !joinedTeam.contains(team)) {
             return false    // invalid index or not joined team
         }
+        if (input.char != null && !checker.check(input.char!!)) {
+            return false    // invalid input
+        }
         val e = inputs[team]
         if (e == null) {
             inputs[team] = Array(answer.length) { NepChar() }
@@ -74,7 +78,7 @@ class NepleagueSession(
                     if (b) {
                         player.sendMessage(text("入力しました", NamedTextColor.GREEN))
                     } else {
-                        player.sendMessage(text("入力できませんでした", NamedTextColor.RED))
+                        player.sendMessage(text("問題の指示に従った回答ではありません (ひらがななどの指定がありませんか?)", NamedTextColor.RED))
                     }
                     return@RemoteInput true
                 } else {

@@ -11,7 +11,7 @@ class NepleagueInputCommand : Command("input") {
         description("Input Command of Nepleague Game")
         usage {
             integerArgument("Index(0 indexed)")
-            stringArgument("Input",StringArgument.Type.PHRASE)
+            stringArgument("Input", StringArgument.Type.PHRASE)
             executes {
                 val p = player
                 if (p != null) {
@@ -29,7 +29,7 @@ class NepleagueInputCommand : Command("input") {
                                     if (b) {
                                         success("回答しました")
                                     } else {
-                                        fail("Indexが不正です")
+                                        fail("問題の指示に従った回答ではありません (ひらがななどの指定がありませんか?)")
                                     }
                                 } else {
                                     fail("あなたのチームはゲームに参加していません")

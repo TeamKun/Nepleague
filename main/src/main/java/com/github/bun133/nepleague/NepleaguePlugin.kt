@@ -11,11 +11,11 @@ class NepleaguePlugin : JavaPlugin() {
     private var session: NepleagueSession? = null
 
     fun session() = session
-    fun startWith(answer: String) {
+    fun startWith(answer: String,checker:StringChecker) {
         if (session != null) {
             session!!.destroy()
         }
-        session = NepleagueSession(this, answer, config.team.value().toList())
+        session = NepleagueSession(this, answer, config.team.value().toList(),checker)
         session!!.start()
     }
 

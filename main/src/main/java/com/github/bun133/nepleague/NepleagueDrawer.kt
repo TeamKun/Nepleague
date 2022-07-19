@@ -5,6 +5,7 @@ import com.github.bun133.nepleague.map.MapDisplay
 import org.bukkit.scoreboard.Team
 import java.awt.Color
 import java.awt.Graphics2D
+import java.awt.image.BufferedImage
 
 class NepleagueDrawer(
     private val session: NepleagueSession,
@@ -40,10 +41,10 @@ class NepleagueDrawer(
 //                    println("flushWithCharInfo")
                     if (nepChar != null && nepChar.isSet()) {
                         // 入力済み
-                        drawNepChar(graphics2D, NepChar('済'), conf.fontColor())
+                        drawImage(graphics2D,conf.inputtedImage())
                     } else {
                         // 未入力
-                        drawNepChar(graphics2D, NepChar('未'), conf.fontColor())
+                        drawImage(graphics2D,conf.whileInputImage())
                     }
                 }
             }
@@ -68,6 +69,21 @@ class NepleagueDrawer(
             val h = display.pixelHeight()
             it.fillRect(0, 0, w, h)
         }
+    }
+
+    private fun drawImage(graphics2D: Graphics2D, image: BufferedImage) {
+        val imgW = image.width
+        val imgH = image.height
+        val w = display.pixelWidth()
+        val h = display.pixelHeight()
+        // 拡大
+        val scale = minOf(w / imgW, h / imgH)
+        val scaledW = imgW * scale
+        val scaledH = imgH * scale
+        // 中心に配置
+        val x = (w - scaledW) / 2
+        val y = (h - scaledH) / 2
+        graphics2D.drawImage(image, x, y, scaledW, scaledH, null)
     }
 
     private fun drawNepChar(g: Graphics2D, nepChar: NepChar, color: Color = conf.flippedFontColor()) {

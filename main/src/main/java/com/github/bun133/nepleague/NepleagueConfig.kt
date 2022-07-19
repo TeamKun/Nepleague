@@ -9,6 +9,8 @@ import net.kunmc.lab.configlib.value.collection.TeamSetValue
 import org.bukkit.plugin.Plugin
 import java.awt.Color
 import java.awt.Font
+import java.awt.image.BufferedImage
+import javax.imageio.ImageIO
 
 class NepleagueConfig(plugin: NepleaguePlugin) : BaseConfig(plugin) {
     val answerAnnounceDelay = IntegerValue(20 * 3, 0, Integer.MAX_VALUE)
@@ -34,15 +36,19 @@ class DrawerConfig(
     fun flippedFontColor() = Color(fontColorFlipped.value())
 
     private val fontFileName = StringValue("MPLUSRounded1c-Light.ttf")
-
-    @Transient
-    private var cachedFontFileName = ""
+        .also {
+            it.onModify { value ->
+                cachedFont = Font.createFont(
+                    Font.TRUETYPE_FONT,
+                    plugin.getResource(value)
+                ).deriveFont(fontSize.value().toFloat())
+            }
+        }
 
     @Transient
     private var cachedFont: Font? = null
     fun font(): Font {
-        if (cachedFontFileName.isEmpty() || cachedFontFileName != fontFileName.value()) {
-            cachedFontFileName = fontFileName.value()
+        if (cachedFont == null) {
             cachedFont = Font.createFont(
                 Font.TRUETYPE_FONT,
                 plugin.getResource(fontFileName.value())
@@ -54,11 +60,27 @@ class DrawerConfig(
     private val defaultBackGroundColor = IntegerValue(0xFFFFFF, 0, 0xFFFFFF)
     fun defaultBackGroundColor() = Color(defaultBackGroundColor.value())
 
-    private val correctAnswerColor = IntegerValue(0xFF0000, 0, 0xFFFFFF)
-    fun correctAnswerColor() = Color(correctAnswerColor.value())
+    private val whileInputImage = StringValue("inputting.png")
 
-    private val wrongAnswerColor = IntegerValue(0x0000FF, 0, 0xFFFFFF)
-    fun wrongAnswerColor() = Color(wrongAnswerColor.value())
+    @Transient
+    private var cachedWhileInputImage: BufferedImage? = null
+    fun whileInputImage(): BufferedImage {
+        if (cachedWhileInputImage == null) {
+            cachedWhileInputImage = ImageIO.read(plugin.getResource(whileInputImage.value()))
+        }
+        return cachedWhileInputImage!!
+    }
+
+    private val inputtedImage = StringValue("inputted.png")
+
+    @Transient
+    private var cachedInputtedImage: BufferedImage? = null
+    fun inputtedImage(): BufferedImage {
+        if (cachedInputtedImage == null) {
+            cachedInputtedImage = ImageIO.read(plugin.getResource(inputtedImage.value()))
+        }
+        return cachedInputtedImage!!
+    }
 }
 
 class DisplayConfig() {

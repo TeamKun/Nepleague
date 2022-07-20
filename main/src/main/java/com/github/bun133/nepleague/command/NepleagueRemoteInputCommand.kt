@@ -12,7 +12,7 @@ class NepleagueRemoteInputCommand : Command("rinput") {
     init {
         description("Input command for remove inputting")
         usage {
-            entityArgument("Player", enableEntities = false)
+            entityArgument("Player")
             integerArgument("Index")
 
             executes {

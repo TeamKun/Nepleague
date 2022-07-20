@@ -10,13 +10,17 @@ import kotlin.reflect.KProperty
 
 class ImageMapRenderer() : MapRenderer() {
     var buf: BufferedImage = BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB)
+    var isChanged = false
 
     override fun render(map: MapView, canvas: MapCanvas, player: Player) {
-        repeat(canvas.cursors.size()) {
-            canvas.cursors.removeCursor(canvas.cursors.getCursor(0))
-        }
+        if (isChanged) {
+            repeat(canvas.cursors.size()) {
+                canvas.cursors.removeCursor(canvas.cursors.getCursor(0))
+            }
 
-        canvas.drawImage(0, 0, buf)
+            canvas.drawImage(0, 0, buf)
+            isChanged = false
+        }
     }
 
     object Delegate {

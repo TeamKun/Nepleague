@@ -27,6 +27,7 @@ class MapSingleDisplay(val stack: ItemStack) : Display {
         if (mapRenderer != null) {
             val g = mapRenderer!!.buf.graphics as Graphics2D
             f(g)
+            mapRenderer!!.isChanged = true
             g.dispose()
         } else {
             throw IllegalStateException("#MapSingleDisplay stack is not a map")

@@ -12,13 +12,13 @@ enum class StringCheckers(val checker: StringChecker) {
 
 class HiraganaChecker : StringChecker {
     override fun check(char: Char): Boolean {
-        return char in '\u3041'..'\u3096'
+        return char in '\u3041'..'\u3096' || char == '\u30FC'   // '\u30FC' is 'ー'
     }
 }
 
 class KatakanaChecker : StringChecker {
     override fun check(char: Char): Boolean {
-        return char in '\u30A1'..'\u30FA'
+        return char in '\u30A1'..'\u30FA' || char == '\u30FC'   // '\u30FC' is 'ー'
     }
 }
 

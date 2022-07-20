@@ -21,6 +21,7 @@ class MapDisplay(val maps: BoxedArray<MapSingleDisplay>) : Display {
         maps.toList().forEach { (x, y, t) ->
             val b = buf.getSubimage(x * 128, y * 128, 128, 128)
             t.mapRenderer?.buf = b  // おいKotlinこれはいいのか
+            t.mapRenderer?.isChanged = true
         }
     }
 }

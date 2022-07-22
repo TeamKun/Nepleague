@@ -25,7 +25,15 @@ class DrawerConfig(
     @Transient
     val plugin: Plugin
 ) : BaseConfig(plugin) {
-    val fontSize = IntegerValue(200, 1, 10000)
+    val fontSize : IntegerValue = IntegerValue(200, 1, 10000)
+        .apply {
+            this.onModify { value ->
+                cachedFont = Font.createFont(
+                    Font.TRUETYPE_FONT,
+                    plugin.getResource(fontFileName.value())
+                ).deriveFont(value.toFloat())
+            }
+        }
 
     // メインの文字色
     private val fontColor = IntegerValue(0x000000, 0, 0xFFFFFF)
@@ -36,8 +44,8 @@ class DrawerConfig(
     fun flippedFontColor() = Color(fontColorFlipped.value())
 
     private val fontFileName = StringValue("MPLUSRounded1c-Light.ttf")
-        .also {
-            it.onModify { value ->
+        .apply {
+            this.onModify { value ->
                 cachedFont = Font.createFont(
                     Font.TRUETYPE_FONT,
                     plugin.getResource(value)

@@ -2,6 +2,14 @@
 
 ## Commands
 
+### DisplayCommand
+```
+/nep display <TeamName> <Index> <BlockLocation>
+```
+
+`<TeamName>`のチームの`<Index>+1`番目のディスプレイの位置を`<BlockLocation>`として登録します<br>
+(1つめのディスプレイはIndexは0になります)
+
 ### TeamCommand
 
 ```
@@ -10,14 +18,19 @@
 /nep team list  // For Debug
 ```
 
+スコアボードに登録されているチームをネプリーグプラグインに連携させます
+
 ### StartCommand
 
 ```
 /nep start <answerType> <string>
 ```
 
-`<answerType>` は `HIRAGANA` `KATAKANA` `NONE`のどれか<br>
-`<string>`が正解のゲームを開始
+`<answerType>` は `HIRAGANA` `KATAKANA` `NONE`のどれかで<br>
+それぞれ、
+`HIRAGANA`はひらがなを指定し、`KATAKANA`は全角カタカナを指定し、`NONE`は何も指定せずに
+`<string>`が正解となるゲームを開始します
+(指定した条件に合わない正解・回答は自動的に却下されます。)
 
 ### ConfigCommand
 
@@ -26,6 +39,7 @@
 ```
 
 (Tab補完出るので)
+ソース見てください。
 
 ### Input Command
 
